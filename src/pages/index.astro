@@ -1,20 +1,111 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import HeroSection from '../components/HeroSection.astro';
+import SkillsSection from '../components/SkillsSection.astro';
+import ProjectsSection from '../components/ProjectsSection.astro';
+import ContactSection from '../components/ContactSection.astro';
+import TideEffect from '../components/Hero3D/TideEffect.tsx';
+import LoadingScreen from '../components/LoadingScreen.astro';
 
+const skills = {
+	Design: [
+		{ name: "UI/UX Design", level: 90 },
+		{ name: "Figma", level: 85 },
+		{ name: "Adobe XD", level: 80 },
+		{ name: "Prototyping", level: 85 },
+	],
+	Frontend: [
+		{ name: "React", level: 95 },
+		{ name: "TypeScript", level: 88 },
+		{ name: "Next.js", level: 85 },
+		{ name: "Tailwind CSS", level: 92 },
+	],
+	Mobile: [
+		{ name: "React Native", level: 82 },
+		{ name: "Flutter", level: 75 },
+		{ name: "iOS Development", level: 70 },
+		{ name: "Android Development", level: 72 },
+	],
+	Backend: [
+		{ name: "Node.js", level: 80 },
+		{ name: "PostgreSQL", level: 75 },
+		{ name: "MongoDB", level: 78 },
+		{ name: "GraphQL", level: 70 },
+	],
+};
+
+const projects = [
+	{
+		id: 1,
+		title: "Neural Dashboard",
+		description: "Real-time analytics dashboard with AI-powered insights and predictive modeling",
+		technologies: ["React", "TypeScript", "D3.js", "TensorFlow.js"],
+		githubUrl: "https://github.com",
+		liveUrl: "https://example.com",
+		stars: 245,
+		category: "web",
+	},
+	{
+		id: 2,
+		title: "CyberChat Mobile",
+		description: "Encrypted messaging app with end-to-end encryption and biometric authentication",
+		technologies: ["React Native", "Node.js", "WebRTC", "MongoDB"],
+		githubUrl: "https://github.com",
+		stars: 189,
+		category: "mobile",
+	},
+	{
+		id: 3,
+		title: "Quantum UI Kit",
+		description: "Modern component library with dark mode and accessibility features",
+		technologies: ["Figma", "React", "Storybook", "Tailwind"],
+		githubUrl: "https://github.com",
+		liveUrl: "https://example.com",
+		stars: 412,
+		category: "design",
+	},
+	{
+		id: 4,
+		title: "Matrix API Gateway",
+		description: "High-performance API gateway with rate limiting and authentication",
+		technologies: ["Node.js", "Redis", "Docker", "Kubernetes"],
+		githubUrl: "https://github.com",
+		stars: 156,
+		category: "backend",
+	},
+	{
+		id: 5,
+		title: "Vision AR",
+		description: "Augmented reality app for interior design and space planning",
+		technologies: ["Unity", "ARCore", "C#", "Blender"],
+		githubUrl: "https://github.com",
+		stars: 298,
+		category: "mobile",
+	},
+	{
+		id: 6,
+		title: "DataFlow Pipeline",
+		description: "ETL pipeline for processing and analyzing large-scale data",
+		technologies: ["Python", "Apache Spark", "Kafka", "PostgreSQL"],
+		githubUrl: "https://github.com",
+		stars: 178,
+		category: "backend",
+	},
+];
+
+const socialLinks = [
+	{ label: "GitHub", href: "https://github.com" },
+	{ label: "LinkedIn", href: "#" },
+	{ label: "Twitter", href: "#" },
+	{ label: "Email", href: "mailto:contact@example.com" },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<a href="/">Home</a>
-		<a href="/about/">About</a>
-		<a href="/blog/">Blog</a>
-
-		<h1>My Astro Site</h1>
-	</body>
-</html>
+<Layout title="Portfolio | Jose Roberto Vargas Orellana">
+	<LoadingScreen />
+	<TideEffect client:only="react" />
+	<HeroSection />
+	<SkillsSection skills={skills} />
+	<ProjectsSection projects={projects} />
+	<ContactSection socialLinks={socialLinks} />
+</Layout>

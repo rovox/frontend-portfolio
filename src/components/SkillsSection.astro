@@ -1,0 +1,145 @@
+---
+interface Skill {
+  name: string;
+  level: number;
+}
+
+interface Props {
+  skills: Record<string, Skill[]>;
+}
+
+const { skills } = Astro.props;
+---
+
+<section class="section" id="skills">
+  <div class="container">
+    <h2 class="section-title">&lt;Skills /&gt;</h2>
+    <p class="section-note">// Technical expertise and creative capabilities</p>
+    <div class="skills-grid">
+      {Object.entries(skills).map(([category, categorySkills]) => (
+        <div class="skill-category">
+          <h3>{category}</h3>
+          {categorySkills.map((skill) => (
+            <div class="skill">
+              <div class="skill-label">
+                <span>{skill.name}</span>
+                <span>{skill.level}%</span>
+              </div>
+              <div class="progress">
+                <span class="progress-fill" style={`width: ${skill.level}%`}></span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Animate skill bars filling up when section enters viewport
+  gsap.utils.toArray<HTMLElement>('.progress-fill').forEach((bar) => {
+    const width = bar.style.width;
+    bar.style.width = '0%';
+    gsap.to(bar, {
+      width,
+      duration: 1.2,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: bar,
+        start: 'top 90%',
+        once: true,
+      },
+    });
+  });
+
+  // Stagger reveal skill categories
+  gsap.fromTo(
+    '.skill-category',
+    { opacity: 0, y: 30 },
+    {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '#skills',
+        start: 'top 75%',
+        once: true,
+      },
+    }
+  );
+</script>
+
+<style>
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .skill-category {
+    padding: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    opacity: 0;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .skill-category:hover {
+    border-color: rgba(45, 226, 230, 0.4);
+    box-shadow: 0 0 20px rgba(45, 226, 230, 0.08);
+  }
+
+  .skill-category h3 {
+    margin: 0 0 1rem;
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+  }
+
+  .skill {
+    margin-bottom: 0.9rem;
+  }
+
+  .skill-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 0.35rem;
+    color: var(--muted);
+  }
+
+  .progress {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+  }
+
+  @media (min-width: 720px) {
+    .skills-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1040px) {
+    .skills-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>

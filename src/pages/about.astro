@@ -1,27 +1,87 @@
 ---
+import Layout from '../layouts/Layout.astro';
 
+const pageTitle = "About Me";
+const identity = {
+  firstName: "Sarah",
+  country: "Canada",
+  occupation: "Technical Writer",
+  hobbies: ["photography", "birdwatching", "baseball"],
+};
+
+const skills = ["HTML", "CSS", "JavaScript", "React", "Astro", "Writing Docs"];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-        <a href="/">Home</a>
-        <a href="/about/">About</a>
-        <a href="/blog/">Blog</a>
+<Layout title={pageTitle}>
+	<main class="about-container">
+		<h1>{pageTitle}</h1>
+		<h2>... and my new Astro site!</h2>
 
-        <h1>About Me</h1>
-        <h2>... and my new Astro site!</h2>
+		<p>I am working through Astro's introductory tutorial. This is the second page on my website, and it's the first one I built myself!</p>
 
-        <p>I am working through Astro's introductory tutorial. This is the second page on my website, and it's the first one I built myself!            
-        </p>
+		<p>This site will update as I complete more of the tutorial, so keep checking back and see how my journey is going!</p>
+		<p>Here are a few facts about me:</p>
+		<ul>
+			<li>My name is {identity.firstName}.</li>
+			<li>I live in {identity.country} and I work as a {identity.occupation}.</li>
+			{identity.hobbies.length >= 2 &&
+				<li>Two of my hobbies are: {identity.hobbies[0]} and {identity.hobbies[1]}</li>
+			}
+		</ul>
+		<p>My skills are:</p>
+		<ul>
+			{skills.map((skill) => <li>{skill}</li>)}
+		</ul>
+	</main>
+</Layout>
 
-        <p>This site will update as I complete more of the tutorial, so keep checking back and see how my journey is going!            
-        </p>
-</body>
-</html>
+<style>
+	.about-container {
+		max-width: 1120px;
+		margin: 0 auto;
+		padding: 8rem 1.25rem;
+		min-height: 100vh;
+	}
+
+	h1 {
+		font-size: clamp(2rem, 5vw, 3rem);
+		margin-bottom: 1rem;
+		font-family: var(--font-mono);
+	}
+
+	h2 {
+		font-size: clamp(1.2rem, 3vw, 1.8rem);
+		color: var(--muted);
+		margin-bottom: 2rem;
+		font-family: var(--font-mono);
+	}
+
+	p {
+		font-size: 1rem;
+		line-height: 1.6;
+		margin-bottom: 1.5rem;
+		color: var(--text);
+	}
+
+	ul {
+		list-style: none;
+		margin: 2rem 0;
+		padding-left: 2rem;
+	}
+
+	li {
+		font-size: 1rem;
+		line-height: 1.8;
+		margin-bottom: 0.75rem;
+		color: var(--text);
+		position: relative;
+		padding-left: 1rem;
+	}
+
+	li::before {
+		content: "▸";
+		position: absolute;
+		left: 0;
+		color: var(--primary);
+	}
+</style>

@@ -1,0 +1,227 @@
+---
+interface Project {
+  id: number;
+  title: string;
+  description: string;
+  technologies: string[];
+  githubUrl: string;
+  liveUrl?: string;
+  stars: number;
+  category: string;
+}
+
+interface Props {
+  projects: Project[];
+}
+
+const { projects } = Astro.props;
+---
+
+<section class="section" id="projects">
+  <div class="container">
+    <h2 class="section-title">&lt;Projects /&gt;</h2>
+    <p class="section-note">// Featured work and open source contributions</p>
+    <div class="filters">
+      <button class="filter-btn active" data-category="all">ALL</button>
+      <button class="filter-btn" data-category="web">WEB</button>
+      <button class="filter-btn" data-category="mobile">MOBILE</button>
+      <button class="filter-btn" data-category="design">DESIGN</button>
+      <button class="filter-btn" data-category="backend">BACKEND</button>
+    </div>
+
+    <div class="projects-grid" id="projects-grid">
+      {projects.map((project) => (
+        <article class="project-card" data-category={project.category}>
+          <p class="card-tag">{project.category.toUpperCase()}</p>
+          <h3>{project.title}</h3>
+          <p class="card-desc">{project.description}</p>
+          <div class="tags">
+            {project.technologies.map((tech) => (
+              <span class="tag">{tech}</span>
+            ))}
+          </div>
+          <div class="project-footer">
+            <span class="stars">★ {project.stars}</span>
+            <div class="project-links">
+              <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
+              {project.liveUrl && (
+                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">Live</a>
+              )}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // --- Filter logic ---
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  const projectCards = document.querySelectorAll<HTMLElement>('.project-card');
+
+  filterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const category = (button as HTMLElement).dataset.category || 'all';
+
+      filterButtons.forEach((item) => item.classList.remove('active'));
+      button.classList.add('active');
+
+      projectCards.forEach((card) => {
+        const isVisible = category === 'all' || card.dataset.category === category;
+        card.style.display = isVisible ? 'block' : 'none';
+      });
+    });
+  });
+
+  // --- Stagger reveal project cards on scroll ---
+  gsap.fromTo(
+    '.project-card',
+    { opacity: 0, y: 40 },
+    {
+      opacity: 1,
+      y: 0,
+      duration: 0.7,
+      stagger: 0.1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '#projects',
+        start: 'top 70%',
+        once: true,
+      },
+    }
+  );
+</script>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .filter-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    padding: 0.45rem 0.8rem;
+    border-radius: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .filter-btn.active,
+  .filter-btn:hover {
+    color: var(--text);
+    border-color: rgba(45, 226, 230, 0.7);
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .project-card {
+    padding: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    opacity: 0;
+  }
+
+  .project-card:hover {
+    border-color: rgba(45, 226, 230, 0.7);
+    box-shadow: 0 0 24px rgba(45, 226, 230, 0.18);
+    transform: translateY(-2px);
+  }
+
+  .project-card h3 {
+    margin: 0.4rem 0 0.55rem;
+    font-family: var(--font-mono);
+  }
+
+  .card-tag {
+    display: inline-block;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.74rem;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    color: var(--primary);
+    font-family: var(--font-mono);
+    margin: 0;
+  }
+
+  .card-desc {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0.9rem 0;
+  }
+
+  .tag {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.74rem;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  .project-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: center;
+    font-size: 0.86rem;
+    margin-top: 0.6rem;
+  }
+
+  .stars {
+    color: var(--muted);
+  }
+
+  .project-links {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .project-links a {
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    transition: opacity 0.2s ease;
+  }
+
+  .project-links a:hover {
+    opacity: 0.7;
+  }
+
+  @media (min-width: 720px) {
+    .projects-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1040px) {
+    .projects-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

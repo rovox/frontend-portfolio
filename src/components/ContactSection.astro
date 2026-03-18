@@ -1,0 +1,89 @@
+---
+interface SocialLink {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  socialLinks: SocialLink[];
+}
+
+const { socialLinks } = Astro.props;
+---
+
+<section class="section contact" id="contact">
+  <div class="container">
+    <h2 class="section-title">&lt;Contact /&gt;</h2>
+    <p class="section-note">// Let's build something amazing together</p>
+    <div class="social">
+      {socialLinks.map((social) => (
+        <a
+          href={social.href}
+          target={social.href.startsWith('http') ? '_blank' : undefined}
+          rel="noopener noreferrer"
+        >
+          {social.label}
+        </a>
+      ))}
+    </div>
+    <a class="btn" href="mailto:contact@example.com">Get In Touch</a>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  gsap.fromTo(
+    '.social a',
+    { opacity: 0, y: 20, scale: 0.9 },
+    {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'back.out(1.4)',
+      scrollTrigger: {
+        trigger: '#contact',
+        start: 'top 80%',
+        once: true,
+      },
+    }
+  );
+</script>
+
+<style>
+  .contact {
+    text-align: center;
+  }
+
+  .social {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .social a {
+    display: inline-block;
+    padding: 0.7rem 0.95rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    opacity: 0;
+  }
+
+  .social a:hover {
+    color: var(--primary);
+    border-color: rgba(45, 226, 230, 0.7);
+    transform: translateY(-2px);
+  }
+</style>
