@@ -1,4 +1,8 @@
 ---
+import SectionWrapper from './ui/SectionWrapper.astro';
+import Card from './ui/Card.astro';
+import Tag from './ui/Tag.astro';
+
 interface Project {
   id: number;
   title: string;
@@ -17,27 +21,24 @@ interface Props {
 const { projects } = Astro.props;
 ---
 
-<section class="section" id="projects">
-  <div class="container">
-    <h2 class="section-title">&lt;Projects /&gt;</h2>
-    <p class="section-note">// Featured work and open source contributions</p>
-    <div class="filters">
-      <button class="filter-btn active" data-category="all">ALL</button>
-      <button class="filter-btn" data-category="web">WEB</button>
-      <button class="filter-btn" data-category="mobile">MOBILE</button>
-      <button class="filter-btn" data-category="design">DESIGN</button>
-      <button class="filter-btn" data-category="backend">BACKEND</button>
+<SectionWrapper id="projects" title="&lt;Projects /&gt;" note="// Featured work and open source contributions">
+    <div class="filters" role="group" aria-label="Filter projects by category">
+      <button class="filter-btn active" data-category="all" aria-pressed="true">ALL</button>
+      <button class="filter-btn" data-category="web" aria-pressed="false">WEB</button>
+      <button class="filter-btn" data-category="mobile" aria-pressed="false">MOBILE</button>
+      <button class="filter-btn" data-category="design" aria-pressed="false">DESIGN</button>
+      <button class="filter-btn" data-category="backend" aria-pressed="false">BACKEND</button>
     </div>
 
     <div class="projects-grid" id="projects-grid">
       {projects.map((project) => (
-        <article class="project-card" data-category={project.category}>
-          <p class="card-tag">{project.category.toUpperCase()}</p>
+        <Card as="article" glow class="project-card" data-category={project.category}>
+          <Tag variant="primary">{project.category.toUpperCase()}</Tag>
           <h3>{project.title}</h3>
           <p class="card-desc">{project.description}</p>
           <div class="tags">
             {project.technologies.map((tech) => (
-              <span class="tag">{tech}</span>
+              <Tag>{tech}</Tag>
             ))}
           </div>
           <div class="project-footer">
@@ -49,17 +50,18 @@ const { projects } = Astro.props;
               )}
             </div>
           </div>
-        </article>
+        </Card>
       ))}
     </div>
-  </div>
-</section>
+</SectionWrapper>
 
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
   gsap.registerPlugin(ScrollTrigger);
+
+  const triggers: ScrollTrigger[] = [];
 
   // --- Filter logic ---
   const filterButtons = document.querySelectorAll('.filter-btn');
@@ -69,8 +71,12 @@ const { projects } = Astro.props;
     button.addEventListener('click', () => {
       const category = (button as HTMLElement).dataset.category || 'all';
 
-      filterButtons.forEach((item) => item.classList.remove('active'));
+      filterButtons.forEach((item) => {
+        item.classList.remove('active');
+        item.setAttribute('aria-pressed', 'false');
+      });
       button.classList.add('active');
+      button.setAttribute('aria-pressed', 'true');
 
       projectCards.forEach((card) => {
         const isVisible = category === 'all' || card.dataset.category === category;
@@ -80,7 +86,7 @@ const { projects } = Astro.props;
   });
 
   // --- Stagger reveal project cards on scroll ---
-  gsap.fromTo(
+  const cardsTween = gsap.fromTo(
     '.project-card',
     { opacity: 0, y: 40 },
     {
@@ -96,6 +102,14 @@ const { projects } = Astro.props;
       },
     }
   );
+  if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+
+  const cleanup = () => {
+    triggers.forEach((t) => t.kill());
+    triggers.length = 0;
+  };
+
+  document.addEventListener('astro:before-swap', cleanup, { once: true });
 </script>
 
 <style>

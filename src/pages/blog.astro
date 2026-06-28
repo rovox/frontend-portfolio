@@ -1,16 +1,44 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import Card from '../components/ui/Card.astro';
+import Tag from '../components/ui/Tag.astro';
+
+const posts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
 <Layout title="Blog">
 	<main class="blog-container">
-		<h1>My Astro Learning Blog</h1>
-		<p>This is where I will post about my journey learning Astro.</p>
-		<ul>
-			<li><a href="/blogs/blog-1/">Post 1</a></li>
-			<li><a href="/blogs/blog-2/">Post 2</a></li>
-			<li><a href="/blogs/blog-3/">Post 3</a></li>
-		</ul>
+		<h1>Blog</h1>
+		<p class="blog-subtitle">Thoughts on engineering, data science, and creative coding.</p>
+		<div class="blog-grid">
+			{posts.map((post) => {
+        const formattedDate = post.data.pubDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+        return (
+          <a href={`/blogs/${post.id}/`} class="blog-link">
+            <Card as="article" glow>
+              <h2>{post.data.title}</h2>
+              <div class="post-meta">
+                <time datetime={post.data.pubDate.toISOString().split('T')[0]}>{formattedDate}</time>
+              </div>
+              <p class="post-desc">{post.data.description}</p>
+              {post.data.tags.length > 0 && (
+                <div class="post-tags">
+                  {post.data.tags.map((tag) => (
+                    <Tag variant="primary">{tag}</Tag>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </a>
+        );
+      })}
+		</div>
 	</main>
 </Layout>
 
@@ -24,40 +52,68 @@ import Layout from '../layouts/Layout.astro';
 
 	h1 {
 		font-size: clamp(2rem, 5vw, 3rem);
-		margin-bottom: 1.5rem;
+		margin-bottom: 0.5rem;
 		font-family: var(--font-mono);
 	}
 
-	p {
+	.blog-subtitle {
 		font-size: 1rem;
 		line-height: 1.6;
-		margin-bottom: 2rem;
+		margin-bottom: 2.5rem;
 		color: var(--muted);
 	}
 
-	ul {
-		list-style: none;
-		padding: 0;
+	.blog-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.25rem;
 	}
 
-	li {
-		margin-bottom: 1rem;
+	.blog-link {
+		text-decoration: none;
+		color: inherit;
+		display: block;
 	}
 
-	a {
-		font-size: 1.1rem;
-		padding: 0.5rem 0.75rem;
-		border: 1px solid var(--border);
-		border-radius: 0.5rem;
-		color: var(--primary);
-		display: inline-block;
-		transition: all 0.2s ease;
+	.blog-link :global(.card-ui) {
+		transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-fast);
+	}
+
+	.blog-link:hover :global(.card-ui) {
+		border-color: rgba(45, 226, 230, 0.7);
+		box-shadow: var(--shadow-lg);
+		transform: translateY(-2px);
+	}
+
+	.blog-link h2 {
+		font-size: 1.3rem;
 		font-family: var(--font-mono);
+		margin-bottom: 0.5rem;
 	}
 
-	a:hover {
-		color: var(--text);
-		border-color: var(--primary);
-		background: rgba(45, 226, 230, 0.08);
+	.post-meta {
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+		color: var(--muted);
+		margin-bottom: 0.75rem;
+	}
+
+	.post-desc {
+		color: var(--muted);
+		font-size: 0.95rem;
+		line-height: 1.6;
+		margin-bottom: 0.75rem;
+	}
+
+	.post-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	@media (min-width: 720px) {
+		.blog-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
 	}
 </style>

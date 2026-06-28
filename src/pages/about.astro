@@ -3,33 +3,49 @@ import Layout from '../layouts/Layout.astro';
 
 const pageTitle = "About Me";
 const identity = {
-  firstName: "Sarah",
-  country: "Canada",
-  occupation: "Technical Writer",
-  hobbies: ["photography", "birdwatching", "baseball"],
+  firstName: "Jose Roberto",
+  lastName: "Vargas Orellana",
+  country: "Bolivia",
+  city: "Cochabamba",
+  occupation: "Software Developer, Data Scientist, Full Stack Web/Mobile/Desktop",
 };
 
-const skills = ["HTML", "CSS", "JavaScript", "React", "Astro", "Writing Docs"];
+const skills = ["Python", "React", "TypeScript", "SQL", "ML/AI"];
 ---
 
 <Layout title={pageTitle}>
 	<main class="about-container">
 		<h1>{pageTitle}</h1>
-		<h2>... and my new Astro site!</h2>
+		<h2 class="about-subtitle">Software Developer &amp; Data Scientist</h2>
 
-		<p>I am working through Astro's introductory tutorial. This is the second page on my website, and it's the first one I built myself!</p>
+		<p>
+			I'm {identity.firstName} {identity.lastName}, a {identity.occupation} based in {identity.city}, {identity.country}.
+			I build immersive digital experiences across web, mobile, and desktop platforms — combining
+			strong engineering fundamentals with a deep eye for UI/UX design.
+		</p>
 
-		<p>This site will update as I complete more of the tutorial, so keep checking back and see how my journey is going!</p>
-		<p>Here are a few facts about me:</p>
-		<ul>
-			<li>My name is {identity.firstName}.</li>
-			<li>I live in {identity.country} and I work as a {identity.occupation}.</li>
-			{identity.hobbies.length >= 2 &&
-				<li>Two of my hobbies are: {identity.hobbies[0]} and {identity.hobbies[1]}</li>
-			}
-		</ul>
-		<p>My skills are:</p>
-		<ul>
+		<p>
+			My work spans full-stack development, data science, and creative coding. I'm passionate about
+			building tools and interfaces that are both performant and beautiful.
+		</p>
+
+		<div class="about-grid">
+			<div class="about-card">
+				<h3>Location</h3>
+				<p>{identity.city}, {identity.country}</p>
+			</div>
+			<div class="about-card">
+				<h3>Focus</h3>
+				<p>Full Stack · Data Science · UI/UX</p>
+			</div>
+			<div class="about-card">
+				<h3>Platforms</h3>
+				<p>Web · Mobile · Desktop</p>
+			</div>
+		</div>
+
+		<h3 class="skills-heading">Core Technologies</h3>
+		<ul class="skills-list">
 			{skills.map((skill) => <li>{skill}</li>)}
 		</ul>
 	</main>
@@ -45,43 +61,88 @@ const skills = ["HTML", "CSS", "JavaScript", "React", "Astro", "Writing Docs"];
 
 	h1 {
 		font-size: clamp(2rem, 5vw, 3rem);
-		margin-bottom: 1rem;
+		margin-bottom: 0.5rem;
 		font-family: var(--font-mono);
 	}
 
-	h2 {
-		font-size: clamp(1.2rem, 3vw, 1.8rem);
+	.about-subtitle {
+		font-size: clamp(1.1rem, 3vw, 1.5rem);
 		color: var(--muted);
 		margin-bottom: 2rem;
 		font-family: var(--font-mono);
+		font-weight: 400;
 	}
 
 	p {
 		font-size: 1rem;
-		line-height: 1.6;
+		line-height: 1.7;
 		margin-bottom: 1.5rem;
 		color: var(--text);
 	}
 
-	ul {
-		list-style: none;
+	.about-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1rem;
 		margin: 2rem 0;
-		padding-left: 2rem;
 	}
 
-	li {
+	.about-card {
+		padding: 1.25rem;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+	}
+
+	.about-card:hover {
+		border-color: rgba(45, 226, 230, 0.4);
+		box-shadow: var(--shadow-sm);
+	}
+
+	.about-card h3 {
+		margin: 0 0 0.5rem;
+		color: var(--primary);
+		font-family: var(--font-mono);
+		font-size: 0.9rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.about-card p {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.95rem;
+	}
+
+	.skills-heading {
+		font-family: var(--font-mono);
 		font-size: 1rem;
-		line-height: 1.8;
-		margin-bottom: 0.75rem;
-		color: var(--text);
-		position: relative;
-		padding-left: 1rem;
+		color: var(--primary);
+		margin: 2rem 0 1rem;
 	}
 
-	li::before {
-		content: "▸";
-		position: absolute;
-		left: 0;
+	.skills-list {
+		list-style: none;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		padding: 0;
+	}
+
+	.skills-list li {
+		padding: 0.45rem 0.85rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		font-family: var(--font-mono);
+		font-size: 0.88rem;
+		color: var(--muted);
+		background: var(--surface);
+		transition: border-color var(--transition-fast), color var(--transition-fast);
+	}
+
+	.skills-list li:hover {
+		border-color: var(--primary);
 		color: var(--primary);
 	}
 </style>

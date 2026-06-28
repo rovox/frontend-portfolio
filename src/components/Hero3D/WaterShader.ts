@@ -1,11 +1,9 @@
-import * as THREE from 'three';
-
 const WaterShader = {
   uniforms: {
     uTime: { value: 0 },
-    uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-    uColorA: { value: new THREE.Color('#002d5f') },
-    uColorB: { value: new THREE.Color('#5052c8') },
+    uMouse: { value: { x: 0.5, y: 0.5 } },
+    uColorA: { value: { r: 0, g: 0.176, b: 0.373 } },
+    uColorB: { value: { r: 0.314, g: 0.322, b: 0.784 } },
     uOpacity: { value: 0.85 },
   },
 

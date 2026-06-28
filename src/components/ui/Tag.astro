@@ -1,0 +1,40 @@
+---
+interface Props {
+  variant?: 'default' | 'primary' | 'accent';
+  class?: string;
+}
+
+const {
+  variant = 'default',
+  class: className = '',
+} = Astro.props;
+---
+
+<span class:list={['tag-ui', `tag-${variant}`, className]}>
+  <slot />
+</span>
+
+<style>
+  .tag-ui {
+    display: inline-block;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.74rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    transition: border-color var(--transition-fast), color var(--transition-fast);
+  }
+
+  .tag-default {
+    color: var(--muted);
+  }
+
+  .tag-primary {
+    color: var(--primary);
+  }
+
+  .tag-accent {
+    color: var(--accent);
+    border-color: rgba(143, 107, 255, 0.4);
+  }
+</style>

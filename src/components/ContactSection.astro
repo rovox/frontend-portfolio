@@ -1,4 +1,7 @@
 ---
+import SectionWrapper from './ui/SectionWrapper.astro';
+import Button from './ui/Button.astro';
+
 interface SocialLink {
   label: string;
   href: string;
@@ -11,10 +14,7 @@ interface Props {
 const { socialLinks } = Astro.props;
 ---
 
-<section class="section contact" id="contact">
-  <div class="container">
-    <h2 class="section-title">&lt;Contact /&gt;</h2>
-    <p class="section-note">// Let's build something amazing together</p>
+<SectionWrapper id="contact" title="&lt;Contact /&gt;" note="// Let's build something amazing together" class="contact">
     <div class="social">
       {socialLinks.map((social) => (
         <a
@@ -26,9 +26,8 @@ const { socialLinks } = Astro.props;
         </a>
       ))}
     </div>
-    <a class="btn" href="mailto:contact@example.com">Get In Touch</a>
-  </div>
-</section>
+    <Button href="mailto:contact@example.com" variant="primary" size="lg">Get In Touch</Button>
+</SectionWrapper>
 
 <script>
   import gsap from 'gsap';
@@ -36,7 +35,7 @@ const { socialLinks } = Astro.props;
 
   gsap.registerPlugin(ScrollTrigger);
 
-  gsap.fromTo(
+  const linksTween = gsap.fromTo(
     '.social a',
     { opacity: 0, y: 20, scale: 0.9 },
     {
@@ -53,6 +52,12 @@ const { socialLinks } = Astro.props;
       },
     }
   );
+
+  const cleanup = () => {
+    if (linksTween.scrollTrigger) linksTween.scrollTrigger.kill();
+  };
+
+  document.addEventListener('astro:before-swap', cleanup, { once: true });
 </script>
 
 <style>

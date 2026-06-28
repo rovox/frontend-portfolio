@@ -1,0 +1,130 @@
+---
+import { getCollection } from 'astro:content';
+import SectionWrapper from './ui/SectionWrapper.astro';
+import Card from './ui/Card.astro';
+import Tag from './ui/Tag.astro';
+import Button from './ui/Button.astro';
+
+const posts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+
+<SectionWrapper id="blog" title="&lt;Blog /&gt;" note="// Latest posts and insights">
+  <div class="posts-grid">
+    {posts.map((post) => {
+      const formattedDate = post.data.pubDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+      return (
+        <a href={`/blogs/${post.id}/`} class="post-link">
+          <Card as="article" glow>
+            <h3>{post.data.title}</h3>
+            <div class="post-meta">
+              <time datetime={post.data.pubDate.toISOString().split('T')[0]}>{formattedDate}</time>
+            </div>
+            <p class="post-desc">{post.data.description}</p>
+            {post.data.tags.length > 0 && (
+              <div class="post-tags">
+                {post.data.tags.slice(0, 3).map((tag) => (
+                  <Tag variant="primary">{tag}</Tag>
+                ))}
+              </div>
+            )}
+          </Card>
+        </a>
+      );
+    })}
+  </div>
+  <div class="view-all">
+    <Button href="/blog/" variant="secondary" size="sm">View All Posts →</Button>
+  </div>
+</SectionWrapper>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const triggers: ScrollTrigger[] = [];
+
+  const cardsTween = gsap.fromTo(
+    '.post-link',
+    { opacity: 0, y: 30 },
+    {
+      opacity: 1,
+      y: 0,
+      duration: 0.7,
+      stagger: 0.12,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '#blog',
+        start: 'top 75%',
+        once: true,
+      },
+    }
+  );
+  if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+
+  const cleanup = () => {
+    triggers.forEach((t) => t.kill());
+    triggers.length = 0;
+  };
+
+  document.addEventListener('astro:before-swap', cleanup, { once: true });
+</script>
+
+<style>
+  .posts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .post-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    opacity: 0;
+  }
+
+  .post-link h3 {
+    font-size: 1.15rem;
+    font-family: var(--font-mono);
+    margin-bottom: 0.4rem;
+  }
+
+  .post-meta {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+
+  .post-desc {
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-bottom: 0.6rem;
+  }
+
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .view-all {
+    text-align: center;
+  }
+
+  @media (min-width: 720px) {
+    .posts-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

@@ -8,4 +8,9 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   integrations: [react()],
   adapter: cloudflare(),
+  vite: {
+    ssr: {
+      noExternal: ['react', 'react-dom'],
+    },
+  },
 });

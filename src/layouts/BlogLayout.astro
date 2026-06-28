@@ -1,0 +1,217 @@
+---
+import Layout from './Layout.astro';
+
+interface Props {
+  title: string;
+  pubDate: Date;
+  description: string;
+  author?: string;
+  image?: { url: string; alt: string };
+  tags?: string[];
+}
+
+const { title, pubDate, description, author, image, tags } = Astro.props;
+
+const formattedDate = pubDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<Layout title={title}>
+  <main class="blog-post">
+    <article>
+      <header class="post-header">
+        <h1>{title}</h1>
+        <div class="post-meta">
+          <time datetime={pubDate.toISOString().split('T')[0]}>{formattedDate}</time>
+          {author && <span class="author">· {author}</span>}
+        </div>
+        {tags && tags.length > 0 && (
+          <div class="post-tags">
+            {tags.map((tag) => (
+              <span class="tag">{tag}</span>
+            ))}
+          </div>
+        )}
+        {image && (
+          <figure class="post-image">
+            <img src={image.url} alt={image.alt} loading="lazy" />
+          </figure>
+        )}
+        <p class="post-description">{description}</p>
+      </header>
+      <div class="post-content">
+        <slot />
+      </div>
+    </article>
+    <nav class="post-nav" aria-label="Blog navigation">
+      <a href="/blog/" class="back-link">← Back to Blog</a>
+    </nav>
+  </main>
+</Layout>
+
+<style>
+  .blog-post {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 8rem 1.25rem 4rem;
+    min-height: 100vh;
+  }
+
+  .post-header {
+    margin-bottom: 3rem;
+  }
+
+  .post-header h1 {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-family: var(--font-mono);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .author {
+    color: var(--primary);
+  }
+
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  .post-image {
+    margin: 1.5rem 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .post-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .post-description {
+    font-size: 1.1rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 1rem 0 0;
+  }
+
+  .post-content {
+    line-height: 1.8;
+    font-size: 1rem;
+  }
+
+  .post-content :global(h2) {
+    font-size: 1.6rem;
+    font-family: var(--font-mono);
+    margin: 2.5rem 0 1rem;
+    color: var(--primary);
+  }
+
+  .post-content :global(h3) {
+    font-size: 1.3rem;
+    font-family: var(--font-mono);
+    margin: 2rem 0 0.75rem;
+  }
+
+  .post-content :global(p) {
+    margin-bottom: 1.2rem;
+    color: var(--text);
+  }
+
+  .post-content :global(a) {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .post-content :global(a:hover) {
+    color: var(--secondary);
+  }
+
+  .post-content :global(ul),
+  .post-content :global(ol) {
+    margin-bottom: 1.2rem;
+    padding-left: 1.5rem;
+  }
+
+  .post-content :global(li) {
+    margin-bottom: 0.5rem;
+  }
+
+  .post-content :global(strong) {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .post-content :global(em) {
+    color: var(--muted);
+  }
+
+  .post-content :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius-sm);
+    background: rgba(45, 226, 230, 0.08);
+    color: var(--primary);
+  }
+
+  .post-content :global(pre) {
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow-x: auto;
+  }
+
+  .post-content :global(pre code) {
+    padding: 0;
+    background: none;
+    color: var(--text);
+  }
+
+  .post-nav {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .back-link {
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    transition: color var(--transition-fast);
+  }
+
+  .back-link:hover {
+    color: var(--secondary);
+  }
+</style>
