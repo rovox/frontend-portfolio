@@ -4,6 +4,7 @@ import SectionWrapper from './ui/SectionWrapper.astro';
 import Card from './ui/Card.astro';
 import Tag from './ui/Tag.astro';
 import Button from './ui/Button.astro';
+import RevealMask from './effects/RevealMask.astro';
 
 const posts = (await getCollection('blog'))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
@@ -19,22 +20,24 @@ const posts = (await getCollection('blog'))
         day: 'numeric',
       });
       return (
-        <a href={`/blogs/${post.id}/`} class="post-link">
-          <Card as="article" glow>
-            <h3>{post.data.title}</h3>
-            <div class="post-meta">
-              <time datetime={post.data.pubDate.toISOString().split('T')[0]}>{formattedDate}</time>
-            </div>
-            <p class="post-desc">{post.data.description}</p>
-            {post.data.tags.length > 0 && (
-              <div class="post-tags">
-                {post.data.tags.slice(0, 3).map((tag) => (
-                  <Tag variant="primary">{tag}</Tag>
-                ))}
+        <RevealMask direction="left">
+          <a href={`/blogs/${post.id}/`} class="post-link">
+            <Card as="article" glow>
+              <h3>{post.data.title}</h3>
+              <div class="post-meta">
+                <time datetime={post.data.pubDate.toISOString().split('T')[0]}>{formattedDate}</time>
               </div>
-            )}
-          </Card>
-        </a>
+              <p class="post-desc">{post.data.description}</p>
+              {post.data.tags.length > 0 && (
+                <div class="post-tags">
+                  {post.data.tags.slice(0, 3).map((tag) => (
+                    <Tag variant="primary">{tag}</Tag>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </a>
+        </RevealMask>
       );
     })}
   </div>
@@ -44,37 +47,46 @@ const posts = (await getCollection('blog'))
 </SectionWrapper>
 
 <script>
-  import gsap from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { gsap, ScrollTrigger } from '../utils/gsap-config';
+  import { prefersReducedMotion } from '../utils/reduced-motion';
 
-  gsap.registerPlugin(ScrollTrigger);
-
-  const triggers: ScrollTrigger[] = [];
-
-  const cardsTween = gsap.fromTo(
-    '.post-link',
-    { opacity: 0, y: 30 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.7,
-      stagger: 0.12,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '#blog',
-        start: 'top 75%',
-        once: true,
-      },
+  function initAnimations() {
+    if (prefersReducedMotion()) {
+      gsap.set('.post-link', { opacity: 1, y: 0 });
+      return;
     }
-  );
-  if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
 
-  const cleanup = () => {
-    triggers.forEach((t) => t.kill());
-    triggers.length = 0;
-  };
+    const triggers: ScrollTrigger[] = [];
 
-  document.addEventListener('astro:before-swap', cleanup, { once: true });
+    const cardsTween = gsap.fromTo(
+      '.post-link',
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        stagger: 0.12,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '#blog',
+          start: 'top 75%',
+          once: true,
+        },
+      }
+    );
+    if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+
+    document.addEventListener('astro:before-swap', () => {
+      triggers.forEach((t) => t.kill());
+      triggers.length = 0;
+    }, { once: true });
+  }
+
+  if ((window as any).__portfolioLoaderDone) {
+    initAnimations();
+  } else {
+    window.addEventListener('preloader:done', initAnimations, { once: true });
+  }
 </script>
 
 <style>

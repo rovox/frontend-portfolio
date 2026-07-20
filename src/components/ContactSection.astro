@@ -30,34 +30,43 @@ const { socialLinks } = Astro.props;
 </SectionWrapper>
 
 <script>
-  import gsap from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { gsap } from '../utils/gsap-config';
+  import { prefersReducedMotion } from '../utils/reduced-motion';
 
-  gsap.registerPlugin(ScrollTrigger);
-
-  const linksTween = gsap.fromTo(
-    '.social a',
-    { opacity: 0, y: 20, scale: 0.9 },
-    {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'back.out(1.4)',
-      scrollTrigger: {
-        trigger: '#contact',
-        start: 'top 80%',
-        once: true,
-      },
+  function initAnimations() {
+    if (prefersReducedMotion()) {
+      gsap.set('.social a', { opacity: 1, y: 0, scale: 1 });
+      return;
     }
-  );
 
-  const cleanup = () => {
-    if (linksTween.scrollTrigger) linksTween.scrollTrigger.kill();
-  };
+    const linksTween = gsap.fromTo(
+      '.social a',
+      { opacity: 0, y: 20, scale: 0.9 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: 'back.out(1.4)',
+        scrollTrigger: {
+          trigger: '#contact',
+          start: 'top 80%',
+          once: true,
+        },
+      }
+    );
 
-  document.addEventListener('astro:before-swap', cleanup, { once: true });
+    document.addEventListener('astro:before-swap', () => {
+      if (linksTween.scrollTrigger) linksTween.scrollTrigger.kill();
+    }, { once: true });
+  }
+
+  if ((window as any).__portfolioLoaderDone) {
+    initAnimations();
+  } else {
+    window.addEventListener('preloader:done', initAnimations, { once: true });
+  }
 </script>
 
 <style>

@@ -1,0 +1,65 @@
+---
+interface Props {
+  direction?: 'left' | 'right' | 'top' | 'bottom' | 'circle';
+  class?: string;
+}
+
+const clipMap: Record<string, string> = {
+  left: 'inset(0 100% 0 0)',
+  right: 'inset(0 0 0 100%)',
+  top: 'inset(0 0 100% 0)',
+  bottom: 'inset(100% 0 0 0)',
+  circle: 'circle(0% at 50% 50%)',
+};
+
+const { direction = 'left', class: className = '' } = Astro.props;
+const initialClip = clipMap[direction] || clipMap.left;
+---
+
+<div class:list={['reveal-mask', className]} style={`clip-path: ${initialClip}`}>
+  <slot />
+</div>
+
+<script>
+  import { gsap, ScrollTrigger } from '../../utils/gsap-config';
+  import { prefersReducedMotion } from '../../utils/reduced-motion';
+
+  function initReveal() {
+    const masks = document.querySelectorAll<HTMLElement>('.reveal-mask');
+
+    if (prefersReducedMotion()) {
+      masks.forEach((m) => {
+        m.style.clipPath = 'inset(0 0 0 0)';
+        m.style.transition = 'none';
+      });
+      return;
+    }
+
+    const triggers: ScrollTrigger[] = [];
+
+    masks.forEach((mask) => {
+      const tween = gsap.to(mask, {
+        clipPath: 'inset(0 0 0 0)',
+        duration: 1.2,
+        ease: 'power4.inOut',
+        scrollTrigger: {
+          trigger: mask,
+          start: 'top 80%',
+          toggleActions: 'play none none none',
+        },
+      });
+      if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+      triggers.forEach((t) => t.kill());
+      triggers.length = 0;
+    }, { once: true });
+  }
+
+  if ((window as any).__portfolioLoaderDone) {
+    initReveal();
+  } else {
+    window.addEventListener('preloader:done', initReveal, { once: true });
+  }
+</script>

@@ -5,9 +5,6 @@ const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/about/', label: 'About' },
   { href: '/blog/', label: 'Blog' },
-  { href: '/#skills', label: 'Skills' },
-  { href: '/#projects', label: 'Projects' },
-  { href: '/#contact', label: 'Contact' },
 ];
 ---
 
@@ -18,7 +15,6 @@ const navLinks = [
         <a
           href={href}
           aria-current={currentPath === href ? 'page' : undefined}
-          data-astro-reload
         >
           {label}
         </a>

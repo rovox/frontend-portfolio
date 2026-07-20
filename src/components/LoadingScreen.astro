@@ -1,11 +1,499 @@
 ---
-import RetroLoader from './RetroLoader';
+// 5-scene cinematic splash: "El Código Que Respira"
+// Scene 1: The Void (0-2s), Scene 2: The Cube (2-5s), Scene 3: The Spiral (5-8s)
+// Scene 4: The Name (8-11s), Scene 5: Big Bang (11-12s)
+// Total duration: 12 seconds
 ---
 
-<RetroLoader client:only="react" />
+<div id="splash-container" class="splash-container">
+  <!-- SCENE 1: The Void (0-2s) -->
+  <div id="scene-1" class="scene">
+    <div id="dot-1" class="void-dot"></div>
+    <div id="dot-2" class="void-dot"></div>
+  </div>
+
+  <!-- SCENE 2: The Cube (2-5s) -->
+  <div id="scene-2" class="scene">
+    <div class="cube">
+      <div class="face front"></div>
+      <div class="face back"></div>
+      <div class="face right"></div>
+      <div class="face left"></div>
+      <div class="face top"></div>
+      <div class="face bottom"></div>
+    </div>
+  </div>
+
+  <!-- SCENE 3: The Spiral (5-8s) -->
+  <div id="scene-3" class="scene">
+    <canvas id="spiral-canvas"></canvas>
+  </div>
+
+  <!-- SCENE 4: The Name (8-11s) -->
+  <div id="scene-4" class="scene">
+    <svg viewBox="0 0 800 300" class="name-svg">
+      <text class="laser-text line-1" x="50%" y="25%" text-anchor="middle">JOSE ROBERTO</text>
+      <text class="laser-text line-2" x="50%" y="52%" text-anchor="middle">VARGAS ORELLANA</text>
+      <text class="laser-text line-3" x="50%" y="75%" text-anchor="middle">SOFTWARE ENGINEER</text>
+    </svg>
+  </div>
+
+  <!-- SCENE 5: Big Bang (11-12s) -->
+  <div id="scene-5" class="scene">
+    <div id="big-bang-orb" class="big-bang-orb"></div>
+  </div>
+
+  <!-- Skip button -->
+  <button id="skip-splash" class="skip-splash">SKIP</button>
+</div>
 
 <style is:global>
-  body.is-loading {
+  /* --- Container + Scene Base --- */
+  .splash-container {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #000;
     overflow: hidden;
+    font-family: var(--font-mono);
+    cursor: crosshair;
   }
+
+  .scene {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* Override reduced-motion for splash */
+  .splash-container,
+  .splash-container *,
+  .splash-container *::before,
+  .splash-container *::after {
+    animation-duration: inherit !important;
+    transition-duration: inherit !important;
+  }
+
+  /* Hide main content during splash */
+  #main-content {
+    visibility: hidden;
+  }
+
+  body.splash-active {
+    padding-top: 0;
+  }
+
+  /* --- SCENE 1: The Void --- */
+  #scene-1 {
+    opacity: 1;
+    display: grid;
+    place-items: center;
+  }
+
+  .void-dot {
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  #dot-2 {
+    opacity: 0;
+  }
+
+  /* --- SCENE 2: The Cube (CSS 3D) --- */
+  #scene-2 {
+    display: grid;
+    place-items: center;
+    perspective: 800px;
+  }
+
+  .cube {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    transform-style: preserve-3d;
+  }
+
+  .face {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border: 1px solid #fff;
+    background: transparent;
+  }
+
+  .front  { transform: translateZ(60px); }
+  .back   { transform: rotateY(180deg) translateZ(60px); }
+  .right  { transform: rotateY(90deg) translateZ(60px); }
+  .left   { transform: rotateY(-90deg) translateZ(60px); }
+  .top    { transform: rotateX(90deg) translateZ(60px); }
+  .bottom { transform: rotateX(-90deg) translateZ(60px); }
+
+  /* --- SCENE 3: The Spiral --- */
+  #scene-3 {
+    background: #000;
+  }
+
+  #spiral-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* --- SCENE 4: The Name (SVG) --- */
+  #scene-4 {
+    display: grid;
+    place-items: center;
+  }
+
+  .name-svg {
+    width: min(90vw, 800px);
+    height: auto;
+    overflow: visible;
+  }
+
+  .laser-text {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    fill: none;
+    stroke: #2de2e6;
+    stroke-width: 1.5;
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+  }
+
+  .line-1 { font-size: 2.5rem; }
+  .line-2 { font-size: 3.5rem; }
+  .line-3 {
+    font-size: 1rem;
+    font-weight: 500;
+    stroke: #55ff9f;
+    stroke-dasharray: 400;
+    stroke-dashoffset: 400;
+  }
+
+  /* --- SCENE 5: Big Bang --- */
+  #scene-5 {
+    display: grid;
+    place-items: center;
+    opacity: 0;
+  }
+
+  .big-bang-orb {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 20px #fff, 0 0 60px #fff, 0 0 120px #fff;
+    transform: scale(0);
+  }
+
+  /* --- Skip Button --- */
+  .skip-splash {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 10001;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    opacity: 0;
+    padding: 0.5rem;
+    transition: color 0.2s ease;
+  }
+
+  .skip-splash:hover { color: #fff; }
 </style>
+
+<script>
+  // @ts-nocheck
+  import { gsap } from '../utils/gsap-config';
+
+  (function () {
+    // ---- matchMedia Override ----
+    let _splashOverrideActive = true;
+    const _originalMatchMedia = window.matchMedia.bind(window);
+
+    window.matchMedia = function (query) {
+      if (_splashOverrideActive && query === '(prefers-reduced-motion: reduce)') {
+        return {
+          matches: false,
+          media: query,
+          onchange: null,
+          addListener: () => {},
+          removeListener: () => {},
+          addEventListener: () => {},
+          removeEventListener: () => {},
+          dispatchEvent: () => true,
+        };
+      }
+      return _originalMatchMedia(query);
+    };
+
+    // ---- Guard ----
+    if (window.__portfolioLoaderShown || window.__inViewTransition) return;
+    window.__portfolioLoaderShown = true;
+
+    // ---- Show splash ----
+    document.getElementById('splash-container').style.display = 'block';
+    document.body.classList.add('splash-active');
+
+    // ---- Scroll Lock ----
+    function lockScroll() {
+      const scrollY = window.scrollY;
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+
+      function preventScroll(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      window.addEventListener('wheel', preventScroll, { passive: false });
+      window.addEventListener('touchmove', preventScroll, { passive: false });
+      window.addEventListener('keydown', function blockKeys(e) {
+        const keys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', ' ', 'Home', 'End'];
+        if (keys.includes(e.key)) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    function unlockScroll() {
+      const scrollY = parseInt(document.body.style.top || '0') * -1;
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    }
+
+    lockScroll();
+
+    // ---- Scene 1: The Void (0-2s) ----
+    function createScene1Timeline() {
+      const tl = gsap.timeline();
+      // Dot 1 pulses, then splits left
+      tl.to('#dot-1', { scale: 1.8, duration: 1.5, ease: 'power2.inOut' }, 0);
+      tl.to('#dot-1', { x: -30, duration: 0.3, ease: 'power2.out' }, 1.5);
+      // Dot 2 appears and splits right
+      tl.set('#dot-2', { opacity: 1, x: 0, y: 0 }, 1.5);
+      tl.to('#dot-2', { x: 30, duration: 0.3, ease: 'power2.out' }, 1.5);
+      // Both fade out
+      tl.to(['#dot-1', '#dot-2'], { opacity: 0, duration: 0.2 }, 1.8);
+      tl.set('#scene-1', { opacity: 0 }, 2);
+      return tl;
+    }
+
+    // ---- Scene 2: The Cube (2-5s) ----
+    function createScene2Timeline() {
+      const tl = gsap.timeline();
+      tl.set('#scene-2', { opacity: 1 }, 0);
+      // 3D rotation
+      tl.to(
+        '.cube',
+        {
+          rotateY: 360,
+          rotateX: -20,
+          duration: 3,
+          ease: 'none',
+        },
+        0
+      );
+      // Border color white -> cyan
+      tl.to(
+        '.face',
+        {
+          borderColor: '#2de2e6',
+          duration: 1.5,
+          ease: 'power2.inOut',
+        },
+        0.5
+      );
+      // Disassemble: each face flies outward
+      tl.to('.front', { x: 150, y: -100, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.5);
+      tl.to('.back', { x: -150, y: -80, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.55);
+      tl.to('.right', { x: 180, y: 50, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.6);
+      tl.to('.left', { x: -160, y: 60, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.65);
+      tl.to('.top', { x: 20, y: -200, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.7);
+      tl.to('.bottom', { x: -30, y: 180, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.75);
+      tl.set('#scene-2', { opacity: 0 }, 2.8);
+      // Reset for potential replay
+      tl.set('.face', { x: 0, y: 0, opacity: 1, borderColor: '#fff' }, 2.8);
+      return tl;
+    }
+
+    // ---- Scene 3: The Spiral (5-8s) ----
+    let spiralActive = false;
+    let spiralRafId = null;
+
+    function startSpiralLoop() {
+      const canvas = document.getElementById('spiral-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.scale(dpr, dpr);
+
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      let spiralTime = 0;
+
+      function draw(timestamp) {
+        if (!spiralActive) {
+          spiralRafId = null;
+          return;
+        }
+        spiralTime = timestamp;
+
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        for (let i = 0; i < 200; i++) {
+          const theta = (i / 200) * 8 * Math.PI;
+          const r = 0.5 * Math.exp(0.15 * theta) + Math.sin(spiralTime * 0.002 + i * 0.1) * 2;
+          const x = cx + r * Math.cos(theta);
+          const y = cy + r * Math.sin(theta);
+          const hue = 180 - (i / 200) * 40;
+          const lightness = 50 + Math.sin(spiralTime * 0.003 + i) * 20;
+          ctx.fillStyle = `hsl(${hue}, 80%, ${lightness}%)`;
+          ctx.fillRect(x, y, 2, 2);
+        }
+
+        spiralRafId = requestAnimationFrame(draw);
+      }
+
+      spiralRafId = requestAnimationFrame(draw);
+    }
+
+    function createScene3Timeline() {
+      const tl = gsap.timeline();
+      tl.set('#scene-3', { opacity: 1 }, 0);
+      tl.call(
+        () => {
+          spiralActive = true;
+          startSpiralLoop();
+        },
+        null,
+        0
+      );
+      tl.call(
+        () => {
+          spiralActive = false;
+        },
+        null,
+        2.5
+      );
+      tl.to('#scene-3', { opacity: 0, duration: 0.5 }, 2.5);
+      return tl;
+    }
+
+    // ---- Scene 4: The Name (8-11s) ----
+    function createScene4Timeline() {
+      const tl = gsap.timeline();
+      tl.set('#scene-4', { opacity: 1, scale: 1 }, 0);
+
+      // Reset stroke-dashoffset
+      tl.set('.line-1', { strokeDashoffset: 600 }, 0);
+      tl.set('.line-2', { strokeDashoffset: 600 }, 0);
+      tl.set('.line-3', { strokeDashoffset: 400 }, 0);
+
+      // Laser trace: stroke-dashoffset -> 0
+      tl.to('.line-1', { strokeDashoffset: 0, duration: 1.5, ease: 'power2.inOut' }, 0);
+      tl.to('.line-2', { strokeDashoffset: 0, duration: 1.5, ease: 'power2.inOut' }, 0.3);
+      tl.to('.line-3', { strokeDashoffset: 0, duration: 1, ease: 'power2.inOut' }, 1);
+
+      // Post-trace glow
+      tl.to(
+        '.laser-text',
+        {
+          textShadow: '0 0 20px #2de2e6, 0 0 40px #2de2e6, 0 0 80px rgba(85,255,159,0.4)',
+          duration: 1,
+          ease: 'power2.out',
+        },
+        2
+      );
+
+      tl.set('#scene-4', { opacity: 0 }, 3);
+      return tl;
+    }
+
+    // ---- Scene 5: Inverse Big Bang (11-12s) ----
+    function createScene5Timeline() {
+      const tl = gsap.timeline({
+        onComplete: function () {
+          // Cancel spiral RAF if still running
+          if (spiralRafId) cancelAnimationFrame(spiralRafId);
+
+          unlockScroll();
+          window.__portfolioLoaderDone = true;
+          window.dispatchEvent(new CustomEvent('preloader:done'));
+          window.dispatchEvent(
+            new CustomEvent('splash-complete', {
+              detail: { duration: 12000, skipped: false },
+            })
+          );
+          document.getElementById('splash-container')?.remove();
+          document.body.classList.remove('splash-active');
+          _splashOverrideActive = false;
+          window.matchMedia = _originalMatchMedia;
+        },
+      });
+
+      // Show scene 4 briefly, then shrink it
+      tl.set('#scene-4', { opacity: 1, scale: 1 }, 0);
+      tl.to('#scene-4', { scale: 0, opacity: 0, duration: 0.4, ease: 'power3.in' }, 0);
+
+      // Big bang orb explodes
+      tl.set('#scene-5', { opacity: 1 }, 0.2);
+      tl.to('#big-bang-orb', { scale: 300, duration: 0.5, ease: 'expo.in' }, 0.2);
+      tl.to('#big-bang-orb', { opacity: 0, duration: 0.3 }, 0.7);
+
+      return tl;
+    }
+
+    // ---- Skip Button ----
+    let master;
+
+    function skip() {
+      if (master) {
+        master.progress(1);
+        // Fire onComplete manually in case GSAP doesn't trigger it
+        const onComplete = master.eventCallback('onComplete');
+        if (onComplete) onComplete();
+      }
+    }
+
+    const skipBtn = document.getElementById('skip-splash');
+    gsap.to(skipBtn, { opacity: 1, duration: 0.5, delay: 3 });
+    skipBtn.addEventListener('click', skip);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') skip();
+    });
+
+    // ---- Master Timeline ----
+    master = gsap.timeline();
+    master.add(createScene1Timeline(), 0);
+    master.add(createScene2Timeline(), 2);
+    master.add(createScene3Timeline(), 5);
+    master.add(createScene4Timeline(), 8);
+    master.add(createScene5Timeline(), 11);
+    master.play();
+  })();
+</script>

@@ -2,6 +2,7 @@
 import SectionWrapper from './ui/SectionWrapper.astro';
 import Card from './ui/Card.astro';
 import Tag from './ui/Tag.astro';
+import RevealMask from './effects/RevealMask.astro';
 
 interface Project {
   id: number;
@@ -32,38 +33,36 @@ const { projects } = Astro.props;
 
     <div class="projects-grid" id="projects-grid">
       {projects.map((project) => (
-        <Card as="article" glow class="project-card" data-category={project.category}>
-          <Tag variant="primary">{project.category.toUpperCase()}</Tag>
-          <h3>{project.title}</h3>
-          <p class="card-desc">{project.description}</p>
-          <div class="tags">
-            {project.technologies.map((tech) => (
-              <Tag>{tech}</Tag>
-            ))}
-          </div>
-          <div class="project-footer">
-            <span class="stars">★ {project.stars}</span>
-            <div class="project-links">
-              <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
-              {project.liveUrl && (
-                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">Live</a>
-              )}
+        <RevealMask direction="bottom">
+          <Card as="article" glow class="project-card" data-category={project.category}>
+            <Tag variant="primary">{project.category.toUpperCase()}</Tag>
+            <h3>{project.title}</h3>
+            <p class="card-desc">{project.description}</p>
+            <div class="tags">
+              {project.technologies.map((tech) => (
+                <Tag>{tech}</Tag>
+              ))}
             </div>
-          </div>
-        </Card>
+            <div class="project-footer">
+              <span class="stars">★ {project.stars}</span>
+              <div class="project-links">
+                <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
+                {project.liveUrl && (
+                  <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">Live</a>
+                )}
+              </div>
+            </div>
+          </Card>
+        </RevealMask>
       ))}
     </div>
 </SectionWrapper>
 
 <script>
-  import gsap from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { gsap, ScrollTrigger } from '../utils/gsap-config';
+  import { prefersReducedMotion } from '../utils/reduced-motion';
 
-  gsap.registerPlugin(ScrollTrigger);
-
-  const triggers: ScrollTrigger[] = [];
-
-  // --- Filter logic ---
+  // --- Filter logic (always active) ---
   const filterButtons = document.querySelectorAll('.filter-btn');
   const projectCards = document.querySelectorAll<HTMLElement>('.project-card');
 
@@ -85,31 +84,43 @@ const { projects } = Astro.props;
     });
   });
 
-  // --- Stagger reveal project cards on scroll ---
-  const cardsTween = gsap.fromTo(
-    '.project-card',
-    { opacity: 0, y: 40 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.7,
-      stagger: 0.1,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '#projects',
-        start: 'top 70%',
-        once: true,
-      },
+  function initAnimations() {
+    if (prefersReducedMotion()) {
+      gsap.set('.project-card', { opacity: 1, y: 0 });
+      return;
     }
-  );
-  if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
 
-  const cleanup = () => {
-    triggers.forEach((t) => t.kill());
-    triggers.length = 0;
-  };
+    const triggers: ScrollTrigger[] = [];
 
-  document.addEventListener('astro:before-swap', cleanup, { once: true });
+    const cardsTween = gsap.fromTo(
+      '.project-card',
+      { opacity: 0, y: 40 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        stagger: 0.1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '#projects',
+          start: 'top 70%',
+          once: true,
+        },
+      }
+    );
+    if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+
+    document.addEventListener('astro:before-swap', () => {
+      triggers.forEach((t) => t.kill());
+      triggers.length = 0;
+    }, { once: true });
+  }
+
+  if ((window as any).__portfolioLoaderDone) {
+    initAnimations();
+  } else {
+    window.addEventListener('preloader:done', initAnimations, { once: true });
+  }
 </script>
 
 <style>

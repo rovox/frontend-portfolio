@@ -37,8 +37,7 @@ src/
 │   ├── LatestPosts.astro
 │   ├── ContactSection.astro
 │   ├── Navbar.astro             # Hash links absolutos (/#skills)
-│   ├── LoadingScreen.astro      # Wrapper para RetroLoader
-│   ├── RetroLoader.tsx          # VFD counter + scanner CSS
+│   ├── LoadingScreen.astro      # Pantalla de carga VFD (HTML/CSS/JS vanilla)
 │   └── AudioController.tsx      # Música procedural chiptune/lo-fi
 ├── content/
 │   └── blog/                    # Content Collections (3 posts)
@@ -59,7 +58,7 @@ src/
 
 Los componentes React **no se renderizan en SSR**. En el runtime de Cloudflare workerd, `ReactCurrentDispatcher.current` es `null` y los hooks fallan. Todos los imports React usan `client:only="react"` para evitar el SSR.
 
-Esto incluye: `DynamicBackground`, `TideEffect`, `RetroLoader`.
+Esto incluye: `DynamicBackground`, `TideEffect`.
 
 ### Navbar + View Transitions
 
@@ -76,13 +75,17 @@ gsap.ticker.lagSmoothing(0)
 
 Lenis se destruye en `astro:before-swap` para evitar leaks.
 
-### RetroLoader
+### LoadingScreen
 
-- VFD 5-dígitos (`clamp(6rem, 25vw, 20rem)`) con transición white → yellow → red
-- Scanner CSS-only (no Canvas): `left` con `transition: 200ms linear`
-- Proyección de dígitos con `mix-blend-mode: hard-light`, `scale(1.5)`, `blur(2px)`
-- Sin Canvas particles/embers
-- Sin sessionStorage — se muestra en cada refresh
+- **Autocontenido**: HTML/CSS/JS vanilla en `Layout.astro` (sin React)
+- **Independiente**: Se muestra en cualquier carga inicial, no depende de páginas específicas
+- **Progreso híbrido**: Timer mínimo 3s + detección de assets reales (`document.fonts.ready`, `window.onload`), máximo 8s
+- **Sin persistencia**: Flag en memoria RAM (`window.__portfolioLoaderShown`), se resetea en cada refresh
+- **VFD 5-dígitos** (`clamp(6rem, 25vw, 20rem)`) con transición white → cyan → red
+- **Scanner CSS-only**: `left` con `transition: 0.1s linear`
+- **CRT-off animation**: 500ms scale squeeze + brightness flash
+- **Accesibilidad**: Respeta `prefers-reduced-motion`
+- **Eventos**: Dispatch `preloader:done` para HeroSection y AudioController
 
 ### TideEffect
 
@@ -97,7 +100,7 @@ Lenis se destruye en `astro:before-swap` para evitar leaks.
 - **Generación procedural** con Tone.js (zero archivos externos)
 - **Estilo**: Chiptune (square/triangle waves) + tratamiento lo-fi (BitCrusher + Reverb)
 - **Tempo**: 80 BPM, swing 12%, ghost notes 30% para feel "imperfecto"
-- **Autoplay**: Inicia automáticamente tras evento `preloader:done` del RetroLoader
+- **Autoplay**: Inicia automáticamente tras evento `preloader:done` del LoadingScreen
 - **Fallback**: Si el browser bloquea AudioContext, muestra "🔊 Click para música" y espera primer click
 - **Controles**: Play/pause ▶/⏸, visualizer de 3 barras, slider de volumen
 - **Posición**: Esquina inferior-derecha, `z-index: 1000`, semi-transparente

@@ -1,0 +1,29 @@
+---
+interface Props {
+  text: string;
+  as?: 'h1' | 'h2' | 'h3' | 'p' | 'span';
+  class?: string;
+  splitBy?: 'words' | 'chars';
+}
+
+const { text, as: Tag = 'span', class: className = '', splitBy = 'words' } = Astro.props;
+const items = splitBy === 'words' ? text.split(' ') : text.split('');
+---
+
+<Tag class:list={[className, 'split-text']} data-split={splitBy}>
+  {items.map((item: string, i: number) => (
+    <>
+      <span class="split-item" style="display: inline-block">{item}</span>
+      {splitBy === 'words' ? ' ' : ''}
+    </>
+  ))}
+</Tag>
+
+<style>
+  .split-text {
+    overflow: hidden;
+  }
+  .split-item {
+    text-shadow: inherit;
+  }
+</style>

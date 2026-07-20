@@ -1,13 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import DynamicBackground from '../components/DynamicBackground.tsx';
 import HeroSection from '../components/HeroSection.astro';
 import SkillsSection from '../components/SkillsSection.astro';
 import ProjectsSection from '../components/ProjectsSection.astro';
 import LatestPosts from '../components/LatestPosts.astro';
 import ContactSection from '../components/ContactSection.astro';
 import TideEffect from '../components/Hero3D/TideEffect.tsx';
-import LoadingScreen from '../components/LoadingScreen.astro';
+import HeroCube from '../components/Hero3D/HeroCube.tsx';
+import ParallaxLayer from '../components/effects/ParallaxLayer.astro';
 
 const skills = {
 	Design: [
@@ -104,10 +104,11 @@ const socialLinks = [
 ---
 
 <Layout title="Portfolio | Jose Roberto Vargas Orellana">
-	<DynamicBackground client:only="react" />
-	<LoadingScreen />
 	<TideEffect client:only="react" />
-	<HeroSection />
+	<HeroCube client:only="react" />
+	<ParallaxLayer speed={-0.3}>
+		<HeroSection />
+	</ParallaxLayer>
 	<SkillsSection skills={skills} />
 	<ProjectsSection projects={projects} />
 	<LatestPosts />
