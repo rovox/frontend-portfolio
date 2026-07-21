@@ -6,7 +6,6 @@ import ProjectsSection from '../components/ProjectsSection.astro';
 import LatestPosts from '../components/LatestPosts.astro';
 import ContactSection from '../components/ContactSection.astro';
 import TideEffect from '../components/Hero3D/TideEffect.tsx';
-import HeroCube from '../components/Hero3D/HeroCube.tsx';
 import ParallaxLayer from '../components/effects/ParallaxLayer.astro';
 
 const skills = {
@@ -105,7 +104,6 @@ const socialLinks = [
 
 <Layout title="Portfolio | Jose Roberto Vargas Orellana">
 	<TideEffect client:only="react" />
-	<HeroCube client:only="react" />
 	<ParallaxLayer speed={-0.3}>
 		<HeroSection />
 	</ParallaxLayer>

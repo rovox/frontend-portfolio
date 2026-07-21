@@ -208,14 +208,11 @@ export default function AudioController() {
   // Listen for preloader:done
   useEffect(() => {
     const handlePreloaderDone = () => {
-      // Check prefers-reduced-motion
+      // Only surface the prompt here; actual audio start must come from a user gesture.
       const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-      if (mql.matches) return;
-
-      // Try to start (may fail if no prior interaction)
-      startAudio().catch(() => {
+      if (!mql.matches) {
         setNeedsInteraction(true);
-      });
+      }
     };
 
     // If preloader already done

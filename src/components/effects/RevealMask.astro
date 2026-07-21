@@ -4,21 +4,34 @@ interface Props {
   class?: string;
 }
 
-const clipMap: Record<string, string> = {
-  left: 'inset(0 100% 0 0)',
-  right: 'inset(0 0 0 100%)',
-  top: 'inset(0 0 100% 0)',
-  bottom: 'inset(100% 0 0 0)',
-  circle: 'circle(0% at 50% 50%)',
-};
-
 const { direction = 'left', class: className = '' } = Astro.props;
-const initialClip = clipMap[direction] || clipMap.left;
 ---
 
-<div class:list={['reveal-mask', className]} style={`clip-path: ${initialClip}`}>
+<div class:list={['reveal-mask', `reveal-mask--${direction}`, className]}>
   <slot />
 </div>
+
+<style>
+  .reveal-mask {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .reveal-mask--right {
+    clip-path: inset(0 0 0 100%);
+  }
+
+  .reveal-mask--top {
+    clip-path: inset(0 0 100% 0);
+  }
+
+  .reveal-mask--bottom {
+    clip-path: inset(100% 0 0 0);
+  }
+
+  .reveal-mask--circle {
+    clip-path: circle(0% at 50% 50%);
+  }
+</style>
 
 <script>
   import { gsap, ScrollTrigger } from '../../utils/gsap-config';
