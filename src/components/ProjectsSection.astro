@@ -1,4 +1,9 @@
 ---
+import SectionWrapper from './ui/SectionWrapper.astro';
+import Card from './ui/Card.astro';
+import Tag from './ui/Tag.astro';
+import RevealMask from './effects/RevealMask.astro';
+
 interface Project {
   id: number;
   title: string;
@@ -17,51 +22,47 @@ interface Props {
 const { projects } = Astro.props;
 ---
 
-<section class="section" id="projects">
-  <div class="container">
-    <h2 class="section-title">&lt;Projects /&gt;</h2>
-    <p class="section-note">// Featured work and open source contributions</p>
-    <div class="filters">
-      <button class="filter-btn active" data-category="all">ALL</button>
-      <button class="filter-btn" data-category="web">WEB</button>
-      <button class="filter-btn" data-category="mobile">MOBILE</button>
-      <button class="filter-btn" data-category="design">DESIGN</button>
-      <button class="filter-btn" data-category="backend">BACKEND</button>
+<SectionWrapper id="projects" title="&lt;Projects /&gt;" note="// Featured work and open source contributions">
+    <div class="filters" role="group" aria-label="Filter projects by category">
+      <button class="filter-btn active" data-category="all" aria-pressed="true">ALL</button>
+      <button class="filter-btn" data-category="web" aria-pressed="false">WEB</button>
+      <button class="filter-btn" data-category="mobile" aria-pressed="false">MOBILE</button>
+      <button class="filter-btn" data-category="design" aria-pressed="false">DESIGN</button>
+      <button class="filter-btn" data-category="backend" aria-pressed="false">BACKEND</button>
     </div>
 
     <div class="projects-grid" id="projects-grid">
       {projects.map((project) => (
-        <article class="project-card" data-category={project.category}>
-          <p class="card-tag">{project.category.toUpperCase()}</p>
-          <h3>{project.title}</h3>
-          <p class="card-desc">{project.description}</p>
-          <div class="tags">
-            {project.technologies.map((tech) => (
-              <span class="tag">{tech}</span>
-            ))}
-          </div>
-          <div class="project-footer">
-            <span class="stars">★ {project.stars}</span>
-            <div class="project-links">
-              <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
-              {project.liveUrl && (
-                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">Live</a>
-              )}
+        <RevealMask direction="bottom">
+          <Card as="article" glow class="project-card" data-category={project.category}>
+            <Tag variant="primary">{project.category.toUpperCase()}</Tag>
+            <h3>{project.title}</h3>
+            <p class="card-desc">{project.description}</p>
+            <div class="tags">
+              {project.technologies.map((tech) => (
+                <Tag>{tech}</Tag>
+              ))}
             </div>
-          </div>
-        </article>
+            <div class="project-footer">
+              <span class="stars">★ {project.stars}</span>
+              <div class="project-links">
+                <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
+                {project.liveUrl && (
+                  <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">Live</a>
+                )}
+              </div>
+            </div>
+          </Card>
+        </RevealMask>
       ))}
     </div>
-  </div>
-</section>
+</SectionWrapper>
 
 <script>
-  import gsap from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { gsap, ScrollTrigger } from '../utils/gsap-config';
+  import { prefersReducedMotion } from '../utils/reduced-motion';
 
-  gsap.registerPlugin(ScrollTrigger);
-
-  // --- Filter logic ---
+  // --- Filter logic (always active) ---
   const filterButtons = document.querySelectorAll('.filter-btn');
   const projectCards = document.querySelectorAll<HTMLElement>('.project-card');
 
@@ -69,8 +70,12 @@ const { projects } = Astro.props;
     button.addEventListener('click', () => {
       const category = (button as HTMLElement).dataset.category || 'all';
 
-      filterButtons.forEach((item) => item.classList.remove('active'));
+      filterButtons.forEach((item) => {
+        item.classList.remove('active');
+        item.setAttribute('aria-pressed', 'false');
+      });
       button.classList.add('active');
+      button.setAttribute('aria-pressed', 'true');
 
       projectCards.forEach((card) => {
         const isVisible = category === 'all' || card.dataset.category === category;
@@ -79,23 +84,43 @@ const { projects } = Astro.props;
     });
   });
 
-  // --- Stagger reveal project cards on scroll ---
-  gsap.fromTo(
-    '.project-card',
-    { opacity: 0, y: 40 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.7,
-      stagger: 0.1,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '#projects',
-        start: 'top 70%',
-        once: true,
-      },
+  function initAnimations() {
+    if (prefersReducedMotion()) {
+      gsap.set('.project-card', { opacity: 1, y: 0 });
+      return;
     }
-  );
+
+    const triggers: ScrollTrigger[] = [];
+
+    const cardsTween = gsap.fromTo(
+      '.project-card',
+      { opacity: 0, y: 40 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        stagger: 0.1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '#projects',
+          start: 'top 70%',
+          once: true,
+        },
+      }
+    );
+    if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+
+    document.addEventListener('astro:before-swap', () => {
+      triggers.forEach((t) => t.kill());
+      triggers.length = 0;
+    }, { once: true });
+  }
+
+  if ((window as any).__portfolioLoaderDone) {
+    initAnimations();
+  } else {
+    window.addEventListener('preloader:done', initAnimations, { once: true });
+  }
 </script>
 
 <style>

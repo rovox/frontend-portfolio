@@ -1,11 +1,669 @@
 ---
-import BlackHoleLoader from './BlackHoleLoader';
+// 5-scene cinematic splash: "El Código Que Respira"
+// Scene 1: The Void (0-2s), Scene 2: The Cube (2-5s), Scene 3: The Spiral (5-8s)
+// Scene 4: The Name (8-11s), Scene 5: Big Bang (11-12s)
+// Total duration: 12 seconds
 ---
 
-<BlackHoleLoader client:load />
+<div id="splash-container" class="splash-container">
+  <!-- Security Camera Counter -->
+  <div id="security-counter" class="security-counter">0000-00-00 00:00:00 | LOAD 000%</div>
+
+  <!-- SCENE 1: The Void (0-2s) -->
+  <div id="scene-1" class="scene">
+    <div id="dot-1" class="void-dot"></div>
+    <div id="dot-2" class="void-dot"></div>
+  </div>
+
+  <!-- SCENE 2: The Cube (2-5s) -->
+  <div id="scene-2" class="scene">
+    <div class="cube">
+      <div class="face front"></div>
+      <div class="face back"></div>
+      <div class="face right"></div>
+      <div class="face left"></div>
+      <div class="face top"></div>
+      <div class="face bottom"></div>
+    </div>
+  </div>
+
+  <!-- SCENE 3: The Spiral (5-8s) -->
+  <div id="scene-3" class="scene">
+    <canvas id="spiral-canvas"></canvas>
+  </div>
+
+  <!-- SCENE 4: PowerShell Terminal (8-11s) -->
+  <div id="scene-4" class="scene terminal-scene">
+    <div class="terminal-window">
+      <div class="terminal-line">
+        <span class="terminal-prompt">PS C:\></span>
+        <span class="terminal-typed" data-text="Jose Roberto"></span>
+        <span class="terminal-cursor">_</span>
+      </div>
+      <div class="terminal-line">
+        <span class="terminal-prompt">PS C:\></span>
+        <span class="terminal-typed" data-text="Vargas Orellana"></span>
+        <span class="terminal-cursor">_</span>
+      </div>
+      <div class="terminal-line">
+        <span class="terminal-prompt">PS C:\></span>
+        <span class="terminal-typed" data-text="Fullstack Developer"></span>
+        <span class="terminal-cursor">_</span>
+      </div>
+      <div class="terminal-line terminal-loading">
+        <span class="terminal-prompt">PS C:\></span>
+        <span class="loading-text">loading</span>
+        <span class="loading-dots">
+          <span>.</span><span>.</span><span>.</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 5: Big Bang (11-12s) -->
+  <div id="scene-5" class="scene">
+    <div id="big-bang-orb" class="big-bang-orb"></div>
+  </div>
+
+  <!-- Skip button -->
+  <button id="skip-splash" class="skip-splash">SKIP</button>
+</div>
 
 <style is:global>
-  body.is-loading {
+  /* --- Container + Scene Base --- */
+  .splash-container {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #000;
     overflow: hidden;
+    font-family: var(--font-mono);
+    cursor: crosshair;
   }
+
+  .scene {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* Override reduced-motion for splash */
+  .splash-container,
+  .splash-container *,
+  .splash-container *::before,
+  .splash-container *::after {
+    animation-duration: inherit !important;
+    transition-duration: inherit !important;
+  }
+
+  /* Hide main content only while splash is active */
+  body.splash-active #main-content {
+    visibility: hidden;
+  }
+
+  body.splash-active {
+    padding-top: 0;
+  }
+
+  /* --- SCENE 1: The Void --- */
+  #scene-1 {
+    opacity: 1;
+    display: grid;
+    place-items: center;
+  }
+
+  .void-dot {
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 24px rgba(255, 255, 255, 0.8), 0 0 48px rgba(255, 255, 255, 0.4);
+  }
+
+  #dot-2 {
+    opacity: 0;
+  }
+
+  /* --- SCENE 2: The Cube (CSS 3D) --- */
+  #scene-2 {
+    display: grid;
+    place-items: center;
+    perspective: 800px;
+  }
+
+  .cube {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    transform-style: preserve-3d;
+  }
+
+  .face {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border: 4px solid #fff;
+    background: transparent;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.35), inset 0 0 20px rgba(255, 255, 255, 0.12);
+  }
+
+  .front  { transform: translateZ(100px); }
+  .back   { transform: rotateY(180deg) translateZ(100px); }
+  .right  { transform: rotateY(90deg) translateZ(100px); }
+  .left   { transform: rotateY(-90deg) translateZ(100px); }
+  .top    { transform: rotateX(90deg) translateZ(100px); }
+  .bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+  /* --- SCENE 3: The Spiral --- */
+  #scene-3 {
+    background: #000;
+  }
+
+  #spiral-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* --- SCENE 4: PowerShell Terminal --- */
+  #scene-4 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #00007F;
+  }
+
+  .terminal-window {
+    font-family: var(--font-mono);
+    color: #F5F5F5;
+    font-size: clamp(1.4rem, 4vw, 2.8rem);
+    line-height: 1.6;
+    padding: 2rem;
+    min-width: min(90vw, 700px);
+    text-shadow: 0 0 8px rgba(245, 245, 245, 0.3);
+  }
+
+  .terminal-line {
+    display: flex;
+    align-items: baseline;
+    white-space: nowrap;
+    opacity: 0;
+  }
+
+  .terminal-prompt {
+    color: #00FFFF;
+    margin-right: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  .terminal-typed {
+    min-height: 1em;
+  }
+
+  .terminal-cursor {
+    display: inline-block;
+    color: #F5F5F5;
+    margin-left: 0.1rem;
+    animation: blinkCursor 0.8s step-end infinite;
+  }
+
+  .terminal-loading {
+    margin-top: 1rem;
+    gap: 0.3rem;
+  }
+
+  .loading-text {
+    color: #F5F5F5;
+  }
+
+  .loading-dots span {
+    display: inline-block;
+    color: #00FFFF;
+    animation: bounceDot 0.6s ease-in-out infinite alternate;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes blinkCursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @keyframes bounceDot {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-8px); opacity: 0.4; }
+  }
+
+  /* --- Security Camera Counter --- */
+  .security-counter {
+    position: fixed;
+    top: 2.5rem;
+    left: 2.5rem;
+    z-index: 10002;
+    font-family: var(--font-mono);
+    font-size: clamp(1.5rem, 5vw, 2.8rem);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.15);
+    text-shadow:
+      0 0 20px rgba(255, 255, 255, 0.08),
+      0 0 60px rgba(255, 255, 255, 0.04);
+    pointer-events: none;
+  }
+
+  /* --- SCENE 5: Big Bang --- */
+  #scene-5 {
+    display: grid;
+    place-items: center;
+    opacity: 0;
+  }
+
+  .big-bang-orb {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 20px #fff, 0 0 60px #fff, 0 0 120px #fff;
+    transform: scale(0);
+  }
+
+  /* --- Skip Button --- */
+  .skip-splash {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 10001;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    opacity: 0;
+    padding: 0.5rem;
+    transition: color 0.2s ease;
+  }
+
+  .skip-splash:hover { color: #fff; }
 </style>
+
+<script>
+  // @ts-nocheck
+  import { gsap } from '../utils/gsap-config';
+
+  (function () {
+    // ---- matchMedia Override ----
+    let _splashOverrideActive = true;
+    const _originalMatchMedia = window.matchMedia.bind(window);
+
+    window.matchMedia = function (query) {
+      if (_splashOverrideActive && query === '(prefers-reduced-motion: reduce)') {
+        return {
+          matches: false,
+          media: query,
+          onchange: null,
+          addListener: () => {},
+          removeListener: () => {},
+          addEventListener: () => {},
+          removeEventListener: () => {},
+          dispatchEvent: () => true,
+        };
+      }
+      return _originalMatchMedia(query);
+    };
+
+    // ---- Guard ----
+    if (window.__portfolioLoaderShown || window.__inViewTransition) return;
+    window.__portfolioLoaderShown = true;
+
+    // ---- Show splash ----
+    document.getElementById('splash-container').style.display = 'block';
+    document.body.classList.add('splash-active');
+
+    // ---- Scroll Lock ----
+    function lockScroll() {
+      const scrollY = window.scrollY;
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+
+      function preventScroll(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      window.addEventListener('wheel', preventScroll, { passive: false });
+      window.addEventListener('touchmove', preventScroll, { passive: false });
+      window.addEventListener('keydown', function blockKeys(e) {
+        const keys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', ' ', 'Home', 'End'];
+        if (keys.includes(e.key)) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    function unlockScroll() {
+      const scrollY = parseInt(document.body.style.top || '0') * -1;
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    }
+
+    function finishSplash() {
+      unlockScroll();
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        mainContent.style.visibility = 'visible';
+      }
+      window.__portfolioLoaderDone = true;
+      window.dispatchEvent(new CustomEvent('preloader:done'));
+      window.dispatchEvent(
+        new CustomEvent('splash-complete', {
+          detail: { duration: 12000, skipped: false },
+        })
+      );
+      document.getElementById('splash-container')?.remove();
+      document.body.classList.remove('splash-active');
+      _splashOverrideActive = false;
+      window.matchMedia = _originalMatchMedia;
+    }
+
+    lockScroll();
+
+    // ---- Scene 1: The Void (0-2s) ----
+    function createScene1Timeline() {
+      const tl = gsap.timeline();
+      // Dot 1 pulses, then splits left
+      tl.to('#dot-1', { scale: 1.8, duration: 1.5, ease: 'power2.inOut' }, 0);
+      tl.to('#dot-1', { x: -30, duration: 0.3, ease: 'power2.out' }, 1.5);
+      // Dot 2 appears and splits right
+      tl.set('#dot-2', { opacity: 1, x: 0, y: 0 }, 1.5);
+      tl.to('#dot-2', { x: 30, duration: 0.3, ease: 'power2.out' }, 1.5);
+      // Both fade out
+      tl.to(['#dot-1', '#dot-2'], { opacity: 0, duration: 0.2 }, 1.8);
+      tl.set('#scene-1', { opacity: 0 }, 2);
+      return tl;
+    }
+
+    // ---- Scene 2: The Cube (2-5s) ----
+    function createScene2Timeline() {
+      const tl = gsap.timeline();
+      tl.set('#scene-2', { opacity: 1 }, 0);
+      // 3D rotation
+      tl.to(
+        '.cube',
+        {
+          rotateY: 360,
+          rotateX: -20,
+          duration: 3,
+          ease: 'none',
+        },
+        0
+      );
+      // Border color white -> cyan
+      tl.to(
+        '.face',
+        {
+          borderColor: '#2de2e6',
+          duration: 1.5,
+          ease: 'power2.inOut',
+        },
+        0.5
+      );
+      // Disassemble: each face flies outward
+      tl.to('.front', { x: 150, y: -100, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.5);
+      tl.to('.back', { x: -150, y: -80, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.55);
+      tl.to('.right', { x: 180, y: 50, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.6);
+      tl.to('.left', { x: -160, y: 60, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.65);
+      tl.to('.top', { x: 20, y: -200, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.7);
+      tl.to('.bottom', { x: -30, y: 180, opacity: 0, duration: 0.5, ease: 'power3.in' }, 2.75);
+      tl.set('#scene-2', { opacity: 0 }, 2.8);
+      // Reset for potential replay
+      tl.set('.face', { x: 0, y: 0, opacity: 1, borderColor: '#fff' }, 2.8);
+      return tl;
+    }
+
+    // ---- Scene 3: The Spiral (5-8s) ----
+    let spiralActive = false;
+    let spiralRafId = null;
+
+    function startSpiralLoop() {
+      const canvas = document.getElementById('spiral-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.scale(dpr, dpr);
+
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      let spiralTime = 0;
+
+      function draw(timestamp) {
+        if (!spiralActive) {
+          spiralRafId = null;
+          return;
+        }
+        spiralTime = timestamp;
+
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        const maxRadius = Math.sqrt(cx * cx + cy * cy) * 1.15;
+        const particleCount = 900;
+
+        for (let i = 0; i < particleCount; i++) {
+          const progress = i / particleCount;
+          const theta = progress * 14 * Math.PI + spiralTime * 0.0006;
+          const r = progress * maxRadius;
+          const x = cx + r * Math.cos(theta);
+          const y = cy + r * Math.sin(theta);
+          const alpha = 0.25 + progress * 0.75;
+          const size = 5 + progress * 5;
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+          ctx.fillRect(x - size / 2, y - size / 2, size, size);
+        }
+
+        spiralRafId = requestAnimationFrame(draw);
+      }
+
+      spiralRafId = requestAnimationFrame(draw);
+    }
+
+    function createScene3Timeline() {
+      const tl = gsap.timeline();
+      tl.set('#scene-3', { opacity: 1 }, 0);
+      tl.call(
+        () => {
+          spiralActive = true;
+          startSpiralLoop();
+        },
+        null,
+        0
+      );
+      tl.call(
+        () => {
+          spiralActive = false;
+        },
+        null,
+        2.5
+      );
+      tl.to('#scene-3', { opacity: 0, duration: 0.5 }, 2.5);
+      return tl;
+    }
+
+    // ---- Scene 4: PowerShell Terminal (8-10.5s) ----
+    function typeTextTimeline(element, text, duration) {
+      const tl = gsap.timeline();
+      element.textContent = '';
+      const charDuration = duration / text.length;
+      for (let i = 0; i < text.length; i++) {
+        tl.call(
+          () => {
+            element.textContent += text[i];
+          },
+          null,
+          i * charDuration
+        );
+      }
+      return tl;
+    }
+
+    function createScene4Timeline() {
+      const tl = gsap.timeline();
+      tl.set('#scene-4', { opacity: 1 }, 0);
+
+      const line1 = document.querySelector('#scene-4 .terminal-line:nth-child(1) .terminal-typed');
+      const line2 = document.querySelector('#scene-4 .terminal-line:nth-child(2) .terminal-typed');
+      const line3 = document.querySelector('#scene-4 .terminal-line:nth-child(3) .terminal-typed');
+
+      // Line 1
+      tl.set('#scene-4 .terminal-line:nth-child(1)', { opacity: 1 }, 0);
+      tl.add(typeTextTimeline(line1, 'Jose Roberto', 0.6), 0);
+
+      // Line 2
+      tl.set('#scene-4 .terminal-line:nth-child(2)', { opacity: 1 }, 0.7);
+      tl.add(typeTextTimeline(line2, 'Vargas Orellana', 0.7), 0.7);
+
+      // Line 3
+      tl.set('#scene-4 .terminal-line:nth-child(3)', { opacity: 1 }, 1.4);
+      tl.add(typeTextTimeline(line3, 'Fullstack Developer', 0.6), 1.4);
+
+      // Cursor blink animation (GSAP because CSS keyframes are overridden)
+      tl.to(
+        '.terminal-cursor',
+        { opacity: 0, duration: 0.4, repeat: -1, yoyo: true, ease: 'steps(1)' },
+        0
+      );
+
+      // Loading dots bounce animation
+      tl.to(
+        '.loading-dots span',
+        { y: -8, opacity: 0.4, duration: 0.3, stagger: 0.1, repeat: -1, yoyo: true, ease: 'power1.inOut' },
+        2.0
+      );
+
+      // Loading dots
+      tl.set('#scene-4 .terminal-loading', { opacity: 1 }, 2.0);
+
+      tl.set('#scene-4', { opacity: 0 }, 2.5);
+      return tl;
+    }
+
+    // ---- Scene 5: Inverse Big Bang (11-12s) ----
+    function createScene5Timeline() {
+      const tl = gsap.timeline({
+        onComplete: function () {
+          // Cancel spiral RAF if still running
+          if (spiralRafId) cancelAnimationFrame(spiralRafId);
+
+          finishSplash();
+        },
+      });
+
+      // Show scene 4 briefly, then shrink it
+      tl.set('#scene-4', { opacity: 1, scale: 1 }, 0);
+      tl.to('#scene-4', { scale: 0, opacity: 0, duration: 0.4, ease: 'power3.in' }, 0);
+
+      // Big bang orb explodes at 11.5s (1.0s into scene 5)
+      tl.set('#scene-5', { opacity: 1 }, 1.0);
+      tl.to('#big-bang-orb', { scale: 300, duration: 0.5, ease: 'expo.in' }, 1.0);
+      tl.to('#big-bang-orb', { opacity: 0, duration: 0.3 }, 1.5);
+
+      return tl;
+    }
+
+    // ---- Skip Button ----
+    let master;
+
+    function skip() {
+      if (master) {
+        master.progress(1);
+        // Fire onComplete manually in case GSAP doesn't trigger it
+        const onComplete = master.eventCallback('onComplete');
+        if (onComplete) onComplete();
+      }
+    }
+
+    const skipBtn = document.getElementById('skip-splash');
+    gsap.to(skipBtn, { opacity: 1, duration: 0.5, delay: 3 });
+    skipBtn.addEventListener('click', skip);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') skip();
+    });
+
+    // ---- Security Counter ----
+    const counterEl = document.getElementById('security-counter');
+
+    function updateCounter(pct) {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mi = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+      const pctStr = String(Math.round(pct)).padStart(3, '0');
+      counterEl.textContent = `${dateStr} | LOAD ${pctStr}%`;
+    }
+
+    updateCounter(0);
+
+    const counterTl = gsap.timeline();
+    counterTl.to(
+      { val: 0 },
+      {
+        val: 100,
+        duration: 11.5,
+        ease: 'none',
+        onUpdate: function () {
+          updateCounter(this.targets()[0].val);
+        },
+      },
+      0
+    );
+    // Color change to red/orange alternating at 70% (8.05s)
+    counterTl.fromTo(
+      counterEl,
+      { color: 'rgba(255, 0, 0, 0.18)' },
+      { color: 'rgba(255, 102, 0, 0.18)', duration: 0.1, repeat: 35, yoyo: true, ease: 'none' },
+      8.05
+    );
+    // Fade out at 100%
+    counterTl.to(counterEl, { opacity: 0, duration: 0.2 }, 11.5);
+
+    // ---- Master Timeline ----
+    master = gsap.timeline();
+    master.add(createScene1Timeline(), 0);
+    master.add(createScene2Timeline(), 2);
+    master.add(createScene3Timeline(), 5);
+    master.add(createScene4Timeline(), 8);
+    master.add(createScene5Timeline(), 10.5);
+    master.add(counterTl, 0);
+
+    // Background color transitions between scenes
+    master.set('.splash-container', { backgroundColor: '#0a0f1e' }, 0);
+    master.to('.splash-container', { backgroundColor: '#FFD700', duration: 0.3, ease: 'none' }, 2);
+    master.to('.splash-container', { backgroundColor: '#000000', duration: 0.3, ease: 'none' }, 5);
+    master.to('.splash-container', { backgroundColor: '#00007F', duration: 0.5, ease: 'none' }, 8);
+    master.to('.splash-container', { backgroundColor: '#ffffff', duration: 0.15, ease: 'power3.in' }, 11.5);
+    master.to('.splash-container', { backgroundColor: '#04070f', duration: 0.25, ease: 'power3.out' }, 11.8);
+
+    master.play();
+  })();
+</script>

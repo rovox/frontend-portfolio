@@ -1,0 +1,66 @@
+---
+interface Props {
+  speed?: number;
+  class?: string;
+}
+
+const { speed = -0.5, class: className = '' } = Astro.props;
+---
+
+<div class:list={['parallax-layer', className]} data-parallax-speed={speed}>
+  <slot />
+</div>
+
+<script>
+  import { gsap, ScrollTrigger } from '../../utils/gsap-config';
+  import { prefersReducedMotion } from '../../utils/reduced-motion';
+
+  function initParallax() {
+    if (prefersReducedMotion()) return;
+
+    const layers = document.querySelectorAll<HTMLElement>('.parallax-layer');
+    const triggers: ScrollTrigger[] = [];
+
+    layers.forEach((layer) => {
+      const s = parseFloat(layer.dataset.parallaxSpeed || '-0.5');
+
+      const tween = gsap.to(layer, {
+        y: () => window.innerHeight * s,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: layer,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      });
+      if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
+    });
+
+    ScrollTrigger.refresh();
+
+    document.addEventListener('astro:before-swap', () => {
+      triggers.forEach((t) => t.kill());
+      triggers.length = 0;
+    }, { once: true });
+  }
+
+  if ((window as any).__portfolioLoaderDone) {
+    initParallax();
+  } else {
+    window.addEventListener('preloader:done', initParallax, { once: true });
+  }
+</script>
+
+<style>
+  .parallax-layer {
+    will-change: transform;
+    position: relative;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .parallax-layer {
+      will-change: auto;
+    }
+  }
+</style>

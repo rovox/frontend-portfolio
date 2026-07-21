@@ -1,0 +1,33 @@
+---
+interface Props {
+  as?: 'article' | 'div';
+  glow?: boolean;
+  class?: string;
+}
+
+const {
+  as: Tag = 'div',
+  glow = false,
+  class: className = '',
+} = Astro.props;
+---
+
+<Tag class:list={['card-ui', { 'card-glow': glow }, className]}>
+  <slot />
+</Tag>
+
+<style>
+  .card-ui {
+    padding: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-fast);
+  }
+
+  .card-glow:hover {
+    border-color: rgba(45, 226, 230, 0.7);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+</style>

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "default_agent": "orchestrator",
+
+  "agent": {
+    "orchestrator": {
+      "mode": "primary",
+      "model": "opencode-go/deepseek-v4-pro",
+      "description": "Pipeline lead. Receives feature requests, delegates to subagents per the protocol in orchestrator.md, integrates outputs, and delivers.",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "task": "allow",
+        "skill": "allow"
+      }
+    },
+    "design-overseer": {
+      "mode": "subagent",
+      "model": "opencode-go/qwen3.7-plus",
+      "description": "Visual and UX direction. Produces specs, CSS token choices, animation plans. Multimodal — can analyze mockups, screenshots, and visual references.",
+      "temperature": 0.5,
+      "permission": {
+        "edit": "allow",
+        "bash": "deny",
+        "task": "deny",
+        "skill": "allow"
+      }
+    },
+    "build-craftsman": {
+      "mode": "subagent",
+      "model": "opencode-go/deepseek-v4-pro",
+      "description": "Implements Astro components, React islands, GSAP animations, Cloudflare config. Needs strong code generation.",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "task": "deny",
+        "skill": "allow"
+      }
+    },
+    "qa-guardian": {
+      "mode": "subagent",
+      "model": "opencode-go/qwen3.7-plus",
+      "description": "Quality gate. Runs pnpm check, pnpm build, validates against AGENTS.md rules. Multimodal — can compare screenshots for visual regression. Read-only.",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny",
+        "bash": "allow",
+        "task": "deny",
+        "skill": "allow"
+      }
+    }
+  },
+
+  "permission": {
+    "skill": { "*": "allow" },
+    "bash": "ask",
+    "edit": "ask"
+  },
+
+  "formatter": {
+    "prettier": {
+      "extensions": [".ts", ".tsx", ".astro", ".json", ".css", ".md"]
+    }
+  }
+}

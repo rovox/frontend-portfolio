@@ -1,13 +1,26 @@
 ---
+const currentPath = Astro.url.pathname;
+
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/about/', label: 'About' },
+  { href: '/blog/', label: 'Blog' },
+];
 ---
 
-<nav class="nav" id="main-nav">
-  <a href="/">Home</a>
-  <a href="/about/">About</a>
-  <a href="/blog/">Blog</a>
-  <a href="#skills">Skills</a>
-  <a href="#projects">Projects</a>
-  <a href="#contact">Contact</a>
+<nav class="nav" id="main-nav" aria-label="Main navigation">
+  <ul class="nav-list">
+    {navLinks.map(({ href, label }) => (
+      <li>
+        <a
+          href={href}
+          aria-current={currentPath === href ? 'page' : undefined}
+        >
+          {label}
+        </a>
+      </li>
+    ))}
+  </ul>
 </nav>
 
 <style>
@@ -20,28 +33,55 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
     padding: 1rem;
     backdrop-filter: blur(10px);
     background: linear-gradient(90deg, rgba(7, 12, 24, 0.94) 0%, rgba(18, 30, 52, 0.9) 50%, rgba(7, 12, 24, 0.94) 100%);
     border-bottom: 1px solid var(--border);
   }
 
-  .nav a {
+  .nav-list {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-list a {
+    display: inline-block;
     padding: 0.55rem 0.9rem;
     border: 1px solid rgba(158, 177, 212, 0.55);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     color: var(--text);
     font-family: var(--font-mono);
     font-size: 0.9rem;
     background: rgba(255, 255, 255, 0.02);
-    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
   }
 
-  .nav a:hover {
+  .nav-list a:hover {
     color: var(--text);
     border-color: rgba(45, 226, 230, 0.75);
     background: rgba(45, 226, 230, 0.12);
     box-shadow: 0 0 0 1px rgba(45, 226, 230, 0.22) inset;
+  }
+
+  .nav-list a[aria-current="page"] {
+    border-color: var(--primary);
+    background: rgba(45, 226, 230, 0.15);
+    color: var(--primary);
+  }
+
+  @media (max-width: 640px) {
+    .nav-list {
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-list a {
+      font-size: 0.8rem;
+      padding: 0.45rem 0.7rem;
+    }
   }
 </style>

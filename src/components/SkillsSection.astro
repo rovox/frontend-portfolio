@@ -1,4 +1,7 @@
 ---
+import SectionWrapper from './ui/SectionWrapper.astro';
+import RevealMask from './effects/RevealMask.astro';
+
 interface Skill {
   name: string;
   level: number;
@@ -11,14 +14,12 @@ interface Props {
 const { skills } = Astro.props;
 ---
 
-<section class="section" id="skills">
-  <div class="container">
-    <h2 class="section-title">&lt;Skills /&gt;</h2>
-    <p class="section-note">// Technical expertise and creative capabilities</p>
+<SectionWrapper id="skills" title="&lt;Skills /&gt;" note="// Technical expertise and creative capabilities">
     <div class="skills-grid">
       {Object.entries(skills).map(([category, categorySkills]) => (
-        <div class="skill-category">
-          <h3>{category}</h3>
+        <RevealMask direction="bottom">
+          <div class="skill-category">
+            <h3>{category}</h3>
           {categorySkills.map((skill) => (
             <div class="skill">
               <div class="skill-label">
@@ -30,51 +31,72 @@ const { skills } = Astro.props;
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </RevealMask>
       ))}
     </div>
-  </div>
-</section>
+</SectionWrapper>
 
 <script>
-  import gsap from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { gsap, ScrollTrigger } from '../utils/gsap-config';
+  import { prefersReducedMotion } from '../utils/reduced-motion';
 
-  gsap.registerPlugin(ScrollTrigger);
-
-  // Animate skill bars filling up when section enters viewport
-  gsap.utils.toArray<HTMLElement>('.progress-fill').forEach((bar) => {
-    const width = bar.style.width;
-    bar.style.width = '0%';
-    gsap.to(bar, {
-      width,
-      duration: 1.2,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: bar,
-        start: 'top 90%',
-        once: true,
-      },
-    });
-  });
-
-  // Stagger reveal skill categories
-  gsap.fromTo(
-    '.skill-category',
-    { opacity: 0, y: 30 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      stagger: 0.15,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '#skills',
-        start: 'top 75%',
-        once: true,
-      },
+  function initAnimations() {
+    if (prefersReducedMotion()) {
+      gsap.set('.skill-category', { opacity: 1, y: 0 });
+      gsap.utils.toArray<HTMLElement>('.progress-fill').forEach((bar) => {
+        bar.style.width = bar.getAttribute('style')?.match(/width:\s*(\d+%)/)?.[1] || '0%';
+      });
+      return;
     }
-  );
+
+    const triggers: ScrollTrigger[] = [];
+
+    gsap.utils.toArray<HTMLElement>('.progress-fill').forEach((bar) => {
+      const width = bar.style.width;
+      bar.style.width = '0%';
+      const tween = gsap.to(bar, {
+        width,
+        duration: 1.2,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: bar,
+          start: 'top 90%',
+          once: true,
+        },
+      });
+      if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
+    });
+
+    const catTween = gsap.fromTo(
+      '.skill-category',
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        stagger: 0.15,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '#skills',
+          start: 'top 75%',
+          once: true,
+        },
+      }
+    );
+    if (catTween.scrollTrigger) triggers.push(catTween.scrollTrigger);
+
+    document.addEventListener('astro:before-swap', () => {
+      triggers.forEach((t) => t.kill());
+      triggers.length = 0;
+    }, { once: true });
+  }
+
+  if ((window as any).__portfolioLoaderDone) {
+    initAnimations();
+  } else {
+    window.addEventListener('preloader:done', initAnimations, { once: true });
+  }
 </script>
 
 <style>

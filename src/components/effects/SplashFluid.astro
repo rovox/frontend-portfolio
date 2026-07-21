@@ -1,0 +1,42 @@
+---
+import SplashFluidIsland from '../Hero3D/SplashFluid.tsx';
+---
+
+<div id="phase-3-container" class="phase fluid-phase">
+  <div class="fluid-fallback">
+    <div class="fluid-spinner"></div>
+  </div>
+  <SplashFluidIsland client:only="react" />
+</div>
+
+<style>
+  .fluid-phase {
+    z-index: 97;
+    opacity: 0;
+    /* opacity is controlled by GSAP timeline in LoadingScreen.astro */
+  }
+
+  .fluid-fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: #000;
+    z-index: 1;
+  }
+
+  .fluid-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(45, 226, 230, 0.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: fluid-spin 0.8s linear infinite;
+  }
+
+  @keyframes fluid-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
