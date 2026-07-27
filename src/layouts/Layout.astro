@@ -4,6 +4,16 @@ import Navbar from '../components/Navbar.astro';
 import AudioController from '../components/AudioController.tsx';
 import LoadingScreen from '../components/LoadingScreen.astro';
 
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import '@fontsource/inter/800.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/600.css';
+import '@fontsource/jetbrains-mono/700.css';
+
 interface Props {
   title: string;
 }
@@ -18,26 +28,31 @@ const { title } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content="Jose Roberto Vargas Orellana — Software Developer, Data Scientist, Full Stack Web/Mobile/Desktop. Immersive portfolio." />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <script is:inline>
+      (function() {
+        const stored = localStorage.getItem('theme');
+        const theme = stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
     <title>{title}</title>
     <ClientRouter />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
-    <Navbar />
+    <header><Navbar /></header>
     
     <LoadingScreen />
     
-    <div class="page" id="main-content">
+    <main class="page" id="main-content">
       <slot />
-    </div>
+    </main>
 
     <script>
       import Lenis from 'lenis';
       import { gsap, ScrollTrigger } from '../utils/gsap-config';
+      import { defineModule } from '../utils/lifecycle';
 
       let lenis: Lenis | null = null;
       let tickerFn: ((time: number) => void) | null = null;
@@ -57,6 +72,7 @@ const { title } = Astro.props;
         gsap.ticker.add(tickerFn);
         gsap.ticker.lagSmoothing(0);
         ScrollTrigger.refresh();
+        (window as any).lenis = lenis;
       }
 
       function stopScroll() {
@@ -64,46 +80,169 @@ const { title } = Astro.props;
         tickerFn = null;
         lenis?.destroy();
         lenis = null;
+        (window as any).lenis = null;
       }
 
-      if ((window as any).__portfolioLoaderDone) {
-        startScroll();
-      } else {
-        window.addEventListener('preloader:done', startScroll, { once: true });
+      defineModule('lenis', () => {
+        const begin = () => startScroll();
+        if ((window as any).__portfolioLoaderDone) begin();
+        else window.addEventListener('preloader:done', begin, { once: true });
+        return () => {
+          window.removeEventListener('preloader:done', begin);
+          stopScroll();
+        };
+      });
+
+      // ── Hash scroll handler (idempotent) ──
+      function scrollToHash() {
+        const hash = window.location.hash;
+        if (!hash) return;
+        const target = document.querySelector(hash);
+        if (!target) return;
+        if ((window as any).lenis) {
+          (window as any).lenis.scrollTo(target, { offset: -80 });
+        } else {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          window.scrollBy(0, -80);
+        }
       }
+
+      document.addEventListener('astro:page-load', scrollToHash);
+      if (document.readyState === 'complete') scrollToHash();
+      else window.addEventListener('DOMContentLoaded', scrollToHash, { once: true });
 
       document.addEventListener('astro:before-swap', () => {
         (window as any).__inViewTransition = true;
-        stopScroll();
       }, { once: true });
     </script>
 
     <AudioController client:only="react" />
+
+    <!-- Shared filter logic for section filter chips -->
+    <script>
+      import { defineModule } from '../utils/lifecycle';
+
+      function initFilterSection(sectionName: string) {
+        const section = document.querySelector(`[data-filter-section="${sectionName}"]`);
+        if (!section) return null;
+        const chips = section.querySelectorAll<HTMLElement>('[data-filter]');
+        const items = section.parentElement?.querySelectorAll<HTMLElement>('[data-tags]');
+        if (!items || chips.length === 0) return null;
+
+        const onClick = (e: Event) => {
+          const chip = e.currentTarget as HTMLElement;
+          const filter = chip.dataset.filter || 'all';
+          chips.forEach((c) => {
+            c.classList.remove('is-active');
+            c.setAttribute('aria-pressed', 'false');
+          });
+          chip.classList.add('is-active');
+          chip.setAttribute('aria-pressed', 'true');
+          items.forEach((item) => {
+            const tags = item.dataset.tags || '';
+            const show = filter === 'all' || tags.includes(filter);
+            item.classList.toggle('is-hidden', !show);
+          });
+        };
+
+        chips.forEach((chip) => {
+          chip.addEventListener('click', onClick);
+          chip.setAttribute('aria-pressed', chip.classList.contains('is-active') ? 'true' : 'false');
+        });
+
+        return () => {
+          chips.forEach((chip) => chip.removeEventListener('click', onClick));
+          items.forEach((item) => item.classList.remove('is-hidden'));
+        };
+      }
+
+      function initAllFilters() {
+        const cleanups = ['skills', 'experiences', 'projects']
+          .map(initFilterSection)
+          .filter(Boolean) as (() => void)[];
+
+        return () => {
+          cleanups.forEach((c) => c());
+        };
+      }
+
+      defineModule('filters', initAllFilters);
+    </script>
   </body>
 </html>
 
 <style is:global>
+  /* Midnight Protocol — DESIGN.md authoritative spec */
   :root {
-    --bg: #04070f;
-    --surface: rgba(17, 25, 40, 0.55);
-    --surface-strong: rgba(10, 16, 28, 0.9);
-    --border: rgba(76, 97, 132, 0.45);
-    --text: #e9f0ff;
-    --muted: #9eb1d4;
-    --primary: #2de2e6;
-    --secondary: #55ff9f;
+    /* Surface layers */
+    --bg: #0d1515;
+    --surface: rgba(21, 29, 30, 0.7);
+    --surface-high: #232b2c;
+    --surface-container: #192122;
+    --surface-container-low: #151d1e;
+    --surface-container-lowest: #080f10;
+    --surface-variant: #2e3637;
+    --surface-bright: #333b3b;
+    --surface-dim: #0d1515;
+
+    /* Content */
+    --text: #dce4e4;
+    --muted: #b9cacb;
+
+    /* Primary */
+    --primary: #e1fdff;
+    --primary-container: #00f2ff;
+    --on-primary: #00363a;
+    --on-primary-container: #006a71;
+    --primary-fixed: #74f5ff;
+    --primary-fixed-dim: #00dbe7;
+    --surface-tint: #00dbe7;
+
+    /* Secondary */
+    --secondary: #c3c6cf;
+    --on-secondary: #2d3137;
+    --secondary-container: #454950;
+    --secondary-fixed-dim: #c3c6cf;
+
+    /* Tertiary */
+    --tertiary: #f5f7ff;
+    --tertiary-container: #ccdcf6;
+
+    /* Outline */
+    --outline: #849495;
+    --outline-variant: #3a494b;
+    --border: rgba(58, 73, 75, 0.25);
+
+    /* Error */
+    --error: #ffb4ab;
+    --on-error: #690005;
+    --error-container: #93000a;
+
+    /* Accent */
     --accent: #8f6bff;
+
+    /* Typography — DESIGN.md spec */
     --font-body: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
-    --radius-sm: 0.4rem;
-    --radius-md: 0.6rem;
-    --radius-lg: 0.75rem;
+    --fs-display: clamp(2.5rem, 8vw, 3rem);
+    --fs-headline-lg: clamp(1.75rem, 5vw, 2rem);
+    --fs-headline-md: clamp(1.35rem, 3vw, 1.5rem);
+    --fs-body-lg: 1.125rem;
+    --fs-body-md: 1rem;
+    --fs-code: 0.875rem;
+    --fs-label: 0.75rem;
+
+    /* Radii — DESIGN.md spec */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-full: 9999px;
+
+    /* Transitions */
     --transition-fast: 0.2s ease;
     --transition-normal: 0.3s ease;
     --transition-slow: 0.5s ease;
-    --shadow-sm: 0 0 12px rgba(45, 226, 230, 0.08);
-    --shadow-md: 0 0 20px rgba(45, 226, 230, 0.12);
-    --shadow-lg: 0 0 24px rgba(45, 226, 230, 0.18);
   }
 
   * {
@@ -116,7 +255,7 @@ const { title } = Astro.props;
   body {
     scroll-behavior: smooth;
     font-family: var(--font-body);
-    background: radial-gradient(circle at 20% 10%, #14233d 0%, var(--bg) 50%);
+    background: var(--bg);
     color: var(--text);
     overflow-x: hidden;
   }
@@ -135,7 +274,7 @@ const { title } = Astro.props;
   }
 
   :focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-container);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -145,7 +284,7 @@ const { title } = Astro.props;
     top: -100%;
     left: 0;
     padding: 0.75rem 1rem;
-    background: var(--primary);
+    background: var(--primary-container);
     color: var(--bg);
     font-weight: 600;
     font-family: var(--font-mono);
@@ -173,8 +312,10 @@ const { title } = Astro.props;
     position: relative;
   }
 
+  section[id] { scroll-margin-top: 90px; }
+
   .section {
-    min-height: 100vh;
+    min-height: auto;
     padding: 5rem 1.25rem;
     display: flex;
     align-items: center;
@@ -182,43 +323,111 @@ const { title } = Astro.props;
   }
 
   .container {
-    width: min(1120px, 100%);
+    width: min(1200px, 100%);
     margin: 0 auto;
+    padding: 0 var(--margin-mobile, 20px);
   }
 
   .section-title {
     margin: 0 0 0.35rem;
-    font-size: clamp(1.8rem, 4.8vw, 3rem);
+    font-size: var(--fs-headline-lg);
     font-family: var(--font-mono);
+    font-weight: 600;
   }
 
   .section-note {
     margin: 0 0 2rem;
     color: var(--muted);
     font-family: var(--font-mono);
+    font-size: var(--fs-code);
   }
 
+  /* Glass card — DESIGN.md Level 2 (Glass) */
+  .glass-card {
+    background: rgba(21, 29, 30, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: border-color var(--transition-normal), background var(--transition-normal);
+  }
+
+  .glass-card:hover {
+    border-color: var(--primary-container);
+    background: rgba(21, 29, 30, 0.85);
+  }
+
+  /* Buttons — DESIGN.md spec */
   .btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     padding: 0.7rem 1.1rem;
     border-radius: var(--radius-md);
     font-weight: 600;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
+    font-family: var(--font-mono);
     cursor: pointer;
-    transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+    transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+    text-decoration: none;
   }
 
-  .btn:hover {
+  .btn-primary {
+    background: transparent;
+    color: var(--primary-container);
+    border: 1px solid var(--primary-container);
+  }
+
+  .btn-primary:hover {
     transform: translateY(-1px);
-    border-color: rgba(45, 226, 230, 0.7);
-    box-shadow: var(--shadow-lg);
+    color: var(--text);
+    background: rgba(0, 242, 255, 0.1);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid transparent;
+  }
+
+  .btn-ghost:hover {
+    color: var(--text);
+    border-color: var(--border);
+    background: var(--surface);
   }
 
   .btn:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-container);
     outline-offset: 2px;
+  }
+
+  /* Glow utility */
+  .card-glow {
+    transition: border-color var(--transition-normal), background var(--transition-normal);
+  }
+
+  .card-glow:hover {
+    border-color: var(--primary-container);
+    background: rgba(21, 29, 30, 0.85);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.08);
+  }
+
+  /* Section spacing — DESIGN.md: 160px desktop, 80px mobile */
+  @media (min-width: 720px) {
+    .section {
+      padding: 7.5rem 2.5rem;
+    }
+    .container {
+      padding: 0 40px;
+    }
+  }
+
+  @media (min-width: 1040px) {
+    .section {
+      padding: 10rem 5rem;
+    }
+    .container {
+      padding: 0 80px;
+    }
   }
 
   /* View Transition animations */
@@ -232,18 +441,136 @@ const { title } = Astro.props;
     to { opacity: 0; transform: translateY(-20px); }
   }
 
-  ::view-transition-old(root) {
-    animation: fade-out 0.4s ease-in-out;
-  }
+  @supports selector(::view-transition-old(root)) {
+    ::view-transition-old(root) {
+      animation: fade-out 0.4s ease-in-out;
+    }
 
-  ::view-transition-new(root) {
-    animation: fade-in 0.4s ease-in-out;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    ::view-transition-old(root),
     ::view-transition-new(root) {
-      animation: none;
+      animation: fade-in 0.4s ease-in-out;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation: none;
+      }
+    }
+  }
+
+  /* ─── Filter chips (shared across sections) ─── */
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .filter-chip {
+    padding: 0.35rem 0.8rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .filter-chip:hover {
+    border-color: var(--primary-container);
+    color: var(--text);
+  }
+
+  .filter-chip.is-active {
+    border-color: var(--primary-container);
+    color: var(--primary-container);
+    background: rgba(0, 242, 255, 0.08);
+  }
+
+  [data-theme="light"] .filter-chip.is-active {
+    background: rgba(0, 194, 204, 0.08);
+  }
+
+  .filter-item {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .filter-item.is-hidden {
+    opacity: 0 !important;
+    transform: scale(0.96) !important;
+    pointer-events: none;
+  }
+
+  /* ─── Dawn Protocol — Light theme overrides ─── */
+  :root[data-theme="light"] {
+    --bg: #faf6f1;
+    --surface: rgba(255, 255, 255, 0.65);
+    --surface-high: #f0ebe5;
+    --surface-container: #f5f0eb;
+    --surface-container-low: #ede8e3;
+    --surface-container-lowest: #e5e0db;
+    --surface-bright: #ffffff;
+    --surface-dim: #e8e3de;
+    --text: #1e293b;
+    --muted: #5c6d80;
+    --primary: #0c4a6e;
+    --primary-container: #0e7490;
+    --on-primary: #ffffff;
+    --on-primary-container: #ffffff;
+    --secondary: #475569;
+    --on-secondary: #f8fafc;
+    --secondary-container: #e2e8f0;
+    --outline: #94a3b8;
+    --outline-variant: #cbd5e1;
+    --border: rgba(0, 0, 0, 0.08);
+    --error: #b91c1c;
+    --surface-tint: #00a8b5;
+
+    /* Accent */
+    --accent: #6d28d9;
+  }
+
+  /* Light mode elevated cards (no glassmorphism) */
+  :root[data-theme="light"] .glass-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 4px 24px rgba(0, 0, 0, 0.04);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  :root[data-theme="light"] .glass-card:hover {
+    border-color: var(--primary-container);
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.06);
+  }
+
+  :root[data-theme="light"] .skip-link {
+    background: var(--primary-container);
+    color: var(--on-primary);
+  }
+
+  :root[data-theme="light"] .btn-primary {
+    color: var(--primary);
+  }
+  :root[data-theme="light"] .btn-primary:hover {
+    color: var(--primary);
+    background: rgba(14, 116, 144, 0.08);
+  }
+
+  :root[data-theme="light"] .card-glow:hover {
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Transition all theme-aware properties */
+  @media (prefers-reduced-motion: no-preference) {
+    html,
+    html *,
+    html *::before,
+    html *::after {
+      transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease;
     }
   }
 </style>

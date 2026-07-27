@@ -92,12 +92,17 @@ const skills = ["Python", "React", "TypeScript", "SQL", "ML/AI"];
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
-		transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+		transition: border-color var(--transition-normal), background var(--transition-normal);
 	}
 
 	.about-card:hover {
-		border-color: rgba(45, 226, 230, 0.4);
-		box-shadow: var(--shadow-sm);
+		border-color: var(--primary-container);
+		background: rgba(21, 29, 30, 0.85);
+	}
+
+	[data-theme="light"] .about-card:hover {
+		background: #ffffff;
+		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 	}
 
 	.about-card h3 {

@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { gsap } from '../../utils/gsap-config';
 
 export default function MagneticCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
-  const [isHovering, setIsHovering] = useState(false);
   const rafRef = useRef<number>(0);
   const mouseRef = useRef({ x: 0, y: 0 });
   const cursorPosRef = useRef({ x: 0, y: 0 });
@@ -46,7 +45,6 @@ export default function MagneticCursor() {
 
     magneticElements.forEach((el) => {
       const onEnter = () => {
-        setIsHovering(true);
         gsap.to(cursor, {
           scale: 1.6,
           borderColor: 'rgba(85, 255, 159, 0.8)',
@@ -56,7 +54,6 @@ export default function MagneticCursor() {
       };
 
       const onLeave = () => {
-        setIsHovering(false);
         gsap.to(cursor, {
           scale: 1,
           borderColor: 'rgba(255, 255, 255, 0.4)',

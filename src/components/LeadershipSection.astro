@@ -1,0 +1,155 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+
+interface Props {
+  items: CollectionEntry<'leadership'>[];
+}
+
+const { items } = Astro.props;
+const rendered = await Promise.all(
+  items.map(async (item) => {
+    const { Content } = await render(item);
+    return { ...item, Content };
+  })
+);
+---
+
+<section class="section" id="leadership">
+  <div class="container">
+    <h2 class="section-title">&lt;Leadership /&gt;</h2>
+    <p class="section-note">// Community engagement and institutional service</p>
+
+    <div class="leadership-grid">
+      {rendered.map((item) => (
+        <article class="leadership-item glass-card card-glow">
+          <h3 class="role">{item.data.role}</h3>
+          <div class="meta">
+            <span class="org">{item.data.organization}</span>
+            <span class="year-pill">{item.data.year}</span>
+          </div>
+          <div class="desc">
+            <item.Content />
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  import { gsap, ScrollTrigger } from '../utils/gsap-config';
+  import { prefersReducedMotion } from '../utils/reduced-motion';
+
+  function initAnimations() {
+    if (prefersReducedMotion()) {
+      gsap.set('.leadership-item', { opacity: 1, y: 0 });
+      return;
+    }
+
+    const triggers: ScrollTrigger[] = [];
+
+    const cardsTween = gsap.fromTo(
+      '.leadership-item',
+      { opacity: 0, y: 40 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        stagger: 0.12,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '#leadership',
+          start: 'top 70%',
+          once: true,
+        },
+      },
+    );
+    if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        triggers.forEach((t) => t.kill());
+        triggers.length = 0;
+      },
+      { once: true },
+    );
+  }
+
+  if ((window as any).__portfolioLoaderDone) {
+    initAnimations();
+  } else {
+    window.addEventListener('preloader:done', initAnimations, { once: true });
+  }
+</script>
+
+<style>
+  .leadership-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .leadership-item {
+    padding: 1.25rem;
+    opacity: 0;
+  }
+
+  .role {
+    margin: 0 0 0.4rem;
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: var(--fs-headline-md);
+    font-weight: 600;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .org {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .year-pill {
+    flex-shrink: 0;
+    padding: 0.2rem 0.55rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+  }
+
+  .desc {
+    margin: 0;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: var(--fs-body-md);
+    line-height: 1.6;
+  }
+
+  .desc :global(p) {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @media (min-width: 720px) {
+    .leadership-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

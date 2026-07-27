@@ -12,45 +12,54 @@ const { speed = -0.5, class: className = '' } = Astro.props;
 </div>
 
 <script>
+  import { defineModule } from '../../utils/lifecycle';
   import { gsap, ScrollTrigger } from '../../utils/gsap-config';
   import { prefersReducedMotion } from '../../utils/reduced-motion';
 
-  function initParallax() {
+  defineModule('parallax', () => {
     if (prefersReducedMotion()) return;
 
     const layers = document.querySelectorAll<HTMLElement>('.parallax-layer');
     const triggers: ScrollTrigger[] = [];
+    let pendingPreloaderCleanup: (() => void) | null = null;
 
-    layers.forEach((layer) => {
-      const s = parseFloat(layer.dataset.parallaxSpeed || '-0.5');
+    function initParallax() {
+      layers.forEach((layer) => {
+        const s = parseFloat(layer.dataset.parallaxSpeed || '-0.5');
 
-      const tween = gsap.to(layer, {
-        y: () => window.innerHeight * s,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: layer,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
-          invalidateOnRefresh: true,
-        },
+        const tween = gsap.to(layer, {
+          y: () => window.innerHeight * s,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: layer,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        });
+        if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
       });
-      if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
-    });
 
-    ScrollTrigger.refresh();
+      ScrollTrigger.refresh();
+    }
 
-    document.addEventListener('astro:before-swap', () => {
+    if ((window as any).__portfolioLoaderDone) {
+      initParallax();
+    } else {
+      const handler = () => initParallax();
+      window.addEventListener('preloader:done', handler, { once: true });
+      pendingPreloaderCleanup = () =>
+        window.removeEventListener('preloader:done', handler);
+    }
+
+    return () => {
       triggers.forEach((t) => t.kill());
       triggers.length = 0;
-    }, { once: true });
-  }
-
-  if ((window as any).__portfolioLoaderDone) {
-    initParallax();
-  } else {
-    window.addEventListener('preloader:done', initParallax, { once: true });
-  }
+      pendingPreloaderCleanup?.();
+      pendingPreloaderCleanup = null;
+    };
+  });
 </script>
 
 <style>

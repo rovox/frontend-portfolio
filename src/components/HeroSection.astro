@@ -1,18 +1,103 @@
 ---
-import Button from './ui/Button.astro';
 import SplitText from './effects/SplitText.astro';
+import { CV_DOWNLOAD_URL_EN } from '../config';
 ---
 
-<section class="section hero" id="home">
-  <div class="container">
-    <SplitText text="Jose Roberto Vargas Orellana" as="h1" class="hero-title" splitBy="words" />
-    <p class="subtitle">&gt; Computer Engineer &amp; UI/UX Designer</p>
-    <div class="hero-actions">
-      <Button href="#projects" variant="primary">View Projects</Button>
-      <Button href="#" variant="secondary">Download CV</Button>
-      <Button href="#contact" variant="ghost">Contact Me</Button>
+<section id="home" class="section hero">
+  <div class="container hero-container">
+
+    <!-- Label -->
+    <p class="hero-label">&lt;Engineering Digital Excellence /&gt;</p>
+
+    <!-- Photo + Name -->
+    <div class="hero-main">
+      <div
+        class="hero-photo"
+        role="img"
+        aria-label="Profile photo of Jose Roberto Vargas Orellana"
+      >
+        <span class="hero-photo-initials">JRVO</span>
+      </div>
+
+      <div class="hero-info">
+        <h1 class="hero-name section-title--scanner">
+          <SplitText
+            text="JOSE ROBERTO"
+            as="span"
+            class="hero-name-line"
+            splitBy="words" />
+          <SplitText
+            text="VARGAS ORELLANA"
+            as="span"
+            class="hero-name-line"
+            splitBy="words" />
+          <span class="scanner-line" aria-hidden="true"></span>
+        </h1>
+        <p class="hero-title">Software Engineer</p>
+      </div>
     </div>
+
+    <!-- Action Buttons -->
+    <div class="hero-actions">
+      <a
+        href="https://wa.me/59162642144"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-primary"
+      >
+        WhatsApp
+      </a>
+      <a
+        href="mailto:varor.joseroberto@gmail.com"
+        class="btn btn-primary"
+      >
+        Gmail
+      </a>
+      <a
+        href={CV_DOWNLOAD_URL_EN}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-ghost"
+      >
+        Download CV
+      </a>
+    </div>
+
+    <!-- Terminal Card -->
+    <div class="hero-terminal glass-card card-glow">
+      <div class="terminal-titlebar">
+        <span class="terminal-dot" style="background:#ff5f56"></span>
+        <span class="terminal-dot" style="background:#ffbd2e"></span>
+        <span class="terminal-dot" style="background:#27c93f"></span>
+        <span class="terminal-title">zsh — jrvargas.sh</span>
+      </div>
+      <div class="terminal-body">
+        <p class="terminal-prompt">
+          <span class="prompt-arrow">&gt;</span>
+          <span class="prompt-path"> ~/portfolio</span>
+          <span class="prompt-cmd"> cat intro.md</span>
+        </p>
+        <p class="terminal-line">
+          <span class="line-hash">#</span> Designing systems that scale.
+        </p>
+        <p class="terminal-line">
+          <span class="line-hash">#</span> Building interfaces that inspire.
+        </p>
+        <p class="terminal-line terminal-line-last">
+          <span class="line-hash">#</span> Focusing on high-performance web
+          architecture and human-centered design principles.
+        </p>
+        <p class="terminal-prompt terminal-prompt-bottom">
+          <span class="prompt-arrow">&gt;</span>
+          <span class="prompt-path"> ~/portfolio</span>
+          <span class="cursor-blink" aria-hidden="true">&#9608;</span>
+        </p>
+      </div>
+    </div>
+
   </div>
+
+  <!-- Scroll Indicator -->
   <div class="scroll-indicator" aria-hidden="true">
     <span>Scroll</span>
     <div class="scroll-arrow"></div>
@@ -20,146 +105,411 @@ import SplitText from './effects/SplitText.astro';
 </section>
 
 <script>
+  import { defineModule } from '../utils/lifecycle';
   import { gsap } from '../utils/gsap-config';
   import { prefersReducedMotion } from '../utils/reduced-motion';
 
-  if (prefersReducedMotion()) {
-    gsap.set(['.hero-title .split-item', '.subtitle', '.hero-actions'], { 
-      opacity: 1, y: 0, scale: 1, filter: 'none' 
-    });
-  } else {
-    const animations: gsap.core.Tween[] = [];
-    const hovers: gsap.core.Tween[] = [];
+  defineModule('hero', () => {
+    if (prefersReducedMotion()) {
+      gsap.set(
+        [
+          '.hero-label',
+          '.hero-photo',
+          '.hero-name .split-item',
+          '.hero-title',
+          '.hero-terminal',
+          '.terminal-prompt',
+          '.terminal-line',
+          '.terminal-prompt-bottom',
+          '.hero-actions .btn',
+        ],
+        { opacity: 1, y: 0, scale: 1, filter: 'none', x: 0 },
+      );
+      const scannerLineReduced = document.querySelector('.hero .scanner-line');
+      if (scannerLineReduced) {
+        gsap.set(scannerLineReduced, { opacity: 1, scaleX: 1 });
+      }
+      return; // no destroy needed for reduced-motion path
+    }
+
+    const tweens: gsap.core.Tween[] = [];
+    let scrollTL: gsap.core.Timeline | null = null;
+    let pendingPreloaderCleanup: Array<() => void> = [];
 
     const startHeroAnimation = () => {
-      // Hero title parallax on scroll
-      gsap.to('.hero .container', {
-        y: -80,
-        opacity: 0,
-        ease: 'none',
+      // ── Scroll indicator fade only (no container transform — ParallaxLayer handles parallax) ──
+      scrollTL = gsap.timeline({
         scrollTrigger: {
           trigger: '.hero',
           start: 'top top',
-          end: 'bottom top',
+          end: '60% top',
           scrub: true,
         },
       });
+      scrollTL.to('.scroll-indicator', { opacity: 0, ease: 'none' }, 0);
 
-      // Scroll indicator fades on scroll
-      gsap.to('.scroll-indicator', {
-        opacity: 0,
-        y: -20,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.hero',
-          start: 'top 85%',
-          end: 'bottom top',
-          scrub: true,
-        },
-      });
-
-      animations.push(
+      // ── 1. Label ──
+      tweens.push(
         gsap.fromTo(
-          '.hero-title .split-item',
-          { opacity: 0, y: 40, filter: 'blur(8px)' },
-          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.5, ease: 'power3.out', delay: 0.3, stagger: 0.08 }
-        )
+          '.hero-label',
+          { opacity: 0, y: 16 },
+          { opacity: 1, y: 0, duration: 0.6, delay: 0.15 },
+        ),
       );
 
-      animations.push(
+      // ── 2. Photo ──
+      tweens.push(
         gsap.fromTo(
-          '.subtitle',
-          { opacity: 0, y: 20, filter: 'blur(6px)' },
-          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.2, ease: 'power3.out', delay: 0.6 }
-        )
+          '.hero-photo',
+          { opacity: 0, scale: 0.85 },
+          { opacity: 1, scale: 1, duration: 0.9, delay: 0.35 },
+        ),
       );
 
-      animations.push(
+      // ── 3. Name words stagger ──
+      tweens.push(
         gsap.fromTo(
-          '.hero-actions',
-          { opacity: 0, y: 15 },
-          { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.9 }
-        )
+          '.hero-name .split-item',
+          { opacity: 0, y: 36, filter: 'blur(8px)' },
+          {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            duration: 1.2,
+            stagger: 0.09,
+            delay: 0.5,
+            ease: 'power3.out',
+          },
+        ),
       );
 
-      const title = document.querySelector('.hero-title');
-      if (title) {
-        hovers.push(
-          gsap.to(title, {
-            textShadow: '0 0 40px rgba(45, 226, 230, 0.5), 0 0 80px rgba(45, 226, 230, 0.3)',
+      // ── 4. Title (Software Engineer) ──
+      tweens.push(
+        gsap.fromTo(
+          '.hero-title',
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.7, delay: 1.0 },
+        ),
+      );
+
+      // ── 5. Terminal — typewriter-like staggered fades ──
+      tweens.push(
+        gsap.fromTo(
+          '.terminal-prompt:first-child',
+          { opacity: 0, x: -8 },
+          { opacity: 1, x: 0, duration: 0.35, delay: 1.2 },
+        ),
+      );
+      tweens.push(
+        gsap.fromTo(
+          '.terminal-line',
+          { opacity: 0, x: -8 },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.3,
+            stagger: 0.12,
+            delay: 1.45,
+          },
+        ),
+      );
+      tweens.push(
+        gsap.fromTo(
+          '.terminal-prompt-bottom',
+          { opacity: 0, x: -8 },
+          { opacity: 1, x: 0, duration: 0.35, delay: 1.85 },
+        ),
+      );
+
+      // ── 6. Buttons fade up ──
+      tweens.push(
+        gsap.fromTo(
+          '.hero-actions .btn',
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.55,
+            stagger: 0.1,
+            delay: 1.65,
+          },
+        ),
+      );
+
+      // ── 7. Scanner sweep on main title ──
+      const scannerLine = document.querySelector('.hero .scanner-line');
+      if (scannerLine) {
+        tweens.push(
+          gsap.fromTo(
+            scannerLine,
+            { scaleX: 0 },
+            {
+              scaleX: 1,
+              duration: 0.6,
+              ease: 'power2.out',
+              delay: 1.2,
+            },
+          ),
+          gsap.to(scannerLine, {
+            opacity: 0,
             duration: 0.4,
-            ease: 'power2.out',
-            paused: true,
-          })
+            delay: 1.8,
+          }),
         );
-        title.addEventListener('mouseenter', () => hovers[0]?.play());
-        title.addEventListener('mouseleave', () => hovers[0]?.reverse());
       }
-
-      const ctaButtons = document.querySelectorAll('.hero-actions .btn');
-      ctaButtons.forEach((btn) => {
-        const hoverAnim = gsap.to(btn, {
-          scale: 1.05,
-          borderColor: 'rgba(45, 226, 230, 0.9)',
-          boxShadow: '0 0 25px rgba(45, 226, 230, 0.35)',
-          duration: 0.25,
-          ease: 'power2.out',
-          paused: true,
-        });
-        btn.addEventListener('mouseenter', () => hoverAnim.play());
-        btn.addEventListener('mouseleave', () => hoverAnim.reverse());
-      });
     };
 
-    if (window.__portfolioLoaderDone) {
+    // ── Preloader lifecycle ──
+    if ((window as any).__portfolioLoaderDone) {
       startHeroAnimation();
     } else {
       const heroTimer = setTimeout(startHeroAnimation, 8000);
-      window.addEventListener('preloader:done', startHeroAnimation, { once: true });
-      window.addEventListener('preloader:done', () => clearTimeout(heroTimer), { once: true });
+      const onPreloaderDone = () => startHeroAnimation();
+      const clearTimer = () => clearTimeout(heroTimer);
+      window.addEventListener('preloader:done', onPreloaderDone, { once: true });
+      window.addEventListener('preloader:done', clearTimer, { once: true });
+      pendingPreloaderCleanup.push(() => {
+        clearTimeout(heroTimer);
+        window.removeEventListener('preloader:done', onPreloaderDone);
+        window.removeEventListener('preloader:done', clearTimer);
+      });
     }
 
-    const cleanup = () => {
-      animations.forEach((t) => t.kill());
-      animations.length = 0;
-      hovers.forEach((t) => t.kill());
-      hovers.length = 0;
+    return () => {
+      tweens.forEach((t) => t.kill());
+      tweens.length = 0;
+      scrollTL?.kill();
+      scrollTL = null;
+      pendingPreloaderCleanup.forEach((fn) => fn());
+      pendingPreloaderCleanup.length = 0;
     };
-
-    document.addEventListener('astro:before-swap', cleanup, { once: true });
-  }
+  });
 </script>
 
 <style>
+  /* ── Section overrides ── */
   .hero {
+    min-height: 100dvh;
+    justify-content: center;
     text-align: center;
+    padding-top: 10vh;
+    padding-bottom: max(30vh, 10vh);
+  }
+
+  .hero .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
     position: relative;
-    z-index: 10;
+    z-index: 1;
+  }
+
+  /* ── Scanlines overlay (dark mode only) ── */
+  [data-theme="dark"] .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 242, 255, 0.02) 3px,
+      rgba(0, 242, 255, 0.02) 6px
+    );
+    opacity: 0.5;
+  }
+
+  /* ── Label ── */
+  .hero-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+    margin: 0;
+    opacity: 0.85;
+  }
+
+  /* ── Main area: photo + info ── */
+  .hero-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  /* ── Photo ── */
+  .hero-photo {
+    width: clamp(120px, 20vw, 200px);
+    height: clamp(120px, 20vw, 200px);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, #00dbe7, #00696f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--primary-container);
+    box-shadow: 0 0 24px rgba(0, 242, 255, 0.12);
+    flex-shrink: 0;
+  }
+
+  .hero-photo-initials {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    user-select: none;
+  }
+
+  /* ── Name ── */
+  .hero-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-name {
+    position: relative;
+    font-family: var(--font-mono);
+    font-size: var(--fs-display);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--primary);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+  }
+
+  .hero-name-line {
+    display: block;
+  }
+
+  .scanner-line {
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary-container);
+    transform: scaleX(0);
+    transform-origin: left;
+    opacity: 0.8;
   }
 
   .hero-title {
-    font-size: clamp(2.2rem, 7vw, 4.8rem);
-    line-height: 1.08;
-    margin: 0;
     font-family: var(--font-mono);
-    text-shadow: 0 0 25px rgba(45, 226, 230, 0.22);
-  }
-
-  .subtitle {
-    margin-top: 1rem;
-    font-size: clamp(1.1rem, 3.3vw, 1.6rem);
+    font-size: var(--fs-headline-md);
+    font-weight: 500;
     color: var(--muted);
-    font-family: var(--font-mono);
+    margin: 0.5rem 0 0;
   }
 
+  /* ── Action Buttons ── */
   .hero-actions {
-    margin-top: 2rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.75rem;
   }
 
+  /* ── Terminal Card ── */
+  .hero-terminal {
+    width: 100%;
+    max-width: 540px;
+    overflow: hidden;
+    text-align: left;
+    margin-top: 0.25rem;
+  }
+
+  .terminal-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: var(--surface-container-high);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    color: var(--muted);
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .terminal-title {
+    margin-left: 0.25rem;
+  }
+
+  .terminal-body {
+    padding: 1rem 1.125rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-code);
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  .terminal-prompt {
+    margin: 0 0 0.75rem;
+    white-space: nowrap;
+  }
+
+  .terminal-prompt-bottom {
+    margin: 0.75rem 0 0;
+  }
+
+  .prompt-arrow {
+    color: var(--primary-container);
+  }
+
+  .prompt-path {
+    color: var(--muted);
+  }
+
+  .prompt-cmd {
+    color: var(--muted);
+  }
+
+  .terminal-line {
+    margin: 0 0 0.25rem;
+  }
+
+  .terminal-line-last {
+    margin-bottom: 0;
+  }
+
+  .line-hash {
+    color: var(--primary-container);
+    margin-right: 0.04em;
+  }
+
+  /* ── Blinking cursor ── */
+  .cursor-blink {
+    display: inline-block;
+    color: var(--primary-container);
+    animation: hero-cursor-blink 0.8s step-end infinite;
+  }
+
+  @keyframes hero-cursor-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* ── Scroll Indicator ── */
   .scroll-indicator {
     position: absolute;
     bottom: 2rem;
@@ -171,39 +521,98 @@ import SplitText from './effects/SplitText.astro';
     gap: 0.5rem;
     color: var(--muted);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: var(--fs-label);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    opacity: 0;
-    animation: fadeInScroll 1s ease 2s forwards;
+    z-index: 6;
   }
 
   .scroll-arrow {
     width: 20px;
     height: 20px;
-    border-right: 2px solid var(--primary);
-    border-bottom: 2px solid var(--primary);
+    border-right: 2px solid var(--primary-container);
+    border-bottom: 2px solid var(--primary-container);
     transform: rotate(45deg);
-    animation: bounceScroll 2s ease infinite;
+    animation: hero-bounce-scroll 2s ease infinite;
   }
 
-  @keyframes fadeInScroll {
-    to { opacity: 1; }
-  }
-
-  @keyframes bounceScroll {
-    0%, 20%, 50%, 80%, 100% { transform: rotate(45deg) translateY(0); }
-    40% { transform: rotate(45deg) translateY(6px); }
-    60% { transform: rotate(45deg) translateY(3px); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .scroll-indicator {
-      animation: none;
-      opacity: 1;
+  @keyframes hero-bounce-scroll {
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+      transform: rotate(45deg) translateY(0);
     }
+    40% {
+      transform: rotate(45deg) translateY(6px);
+    }
+    60% {
+      transform: rotate(45deg) translateY(3px);
+    }
+  }
+
+  /* ── Desktop: side-by-side photo + info ── */
+  @media (min-width: 720px) {
+    .hero-main {
+      flex-direction: row;
+      gap: 2.25rem;
+      text-align: left;
+    }
+
+    .hero-info {
+      align-items: flex-start;
+    }
+
+    .hero-name {
+      align-items: flex-start;
+    }
+  }
+
+  /* ── Wide desktop: top padding tweak ── */
+  @media (min-width: 1040px) {
+    .hero {
+      padding-top: 12vh;
+      padding-bottom: max(30vh, 12vh);
+    }
+
+    .hero-main {
+      gap: 3rem;
+    }
+  }
+
+  /* ── Reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
     .scroll-arrow {
       animation: none;
     }
+
+    .cursor-blink {
+      animation: none;
+      opacity: 1;
+    }
+
+    [data-theme="dark"] .hero::after {
+      display: none;
+    }
+  }
+
+  /* ── Light mode contrast overrides ── */
+  [data-theme="light"] .hero-label {
+    color: var(--primary);
+  }
+
+  [data-theme="light"] .prompt-arrow,
+  [data-theme="light"] .line-hash,
+  [data-theme="light"] .cursor-blink {
+    color: var(--primary-container);
+  }
+
+  [data-theme="light"] .scanner-line {
+    background: var(--primary-container);
+  }
+
+  [data-theme="light"] .scroll-arrow {
+    border-color: var(--primary-container);
   }
 </style>

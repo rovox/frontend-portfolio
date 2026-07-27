@@ -1,92 +1,67 @@
 ---
-import SectionWrapper from './ui/SectionWrapper.astro';
+import type { CollectionEntry } from 'astro:content';
 import Card from './ui/Card.astro';
 import Tag from './ui/Tag.astro';
 import RevealMask from './effects/RevealMask.astro';
 
-interface Project {
-  id: number;
-  title: string;
-  description: string;
-  technologies: string[];
-  githubUrl: string;
-  liveUrl?: string;
-  stars: number;
-  category: string;
-}
-
 interface Props {
-  projects: Project[];
+  items: CollectionEntry<'projects'>[];
 }
 
-const { projects } = Astro.props;
+const { items } = Astro.props;
 ---
 
-<SectionWrapper id="projects" title="&lt;Projects /&gt;" note="// Featured work and open source contributions">
-    <div class="filters" role="group" aria-label="Filter projects by category">
-      <button class="filter-btn active" data-category="all" aria-pressed="true">ALL</button>
-      <button class="filter-btn" data-category="web" aria-pressed="false">WEB</button>
-      <button class="filter-btn" data-category="mobile" aria-pressed="false">MOBILE</button>
-      <button class="filter-btn" data-category="design" aria-pressed="false">DESIGN</button>
-      <button class="filter-btn" data-category="backend" aria-pressed="false">BACKEND</button>
-    </div>
+<section class="section" id="work">
+  <div class="container">
+    <h2 class="section-title section-title--scanner">
+      &lt;Projects /&gt;
+      <span class="scanner-line" aria-hidden="true"></span>
+    </h2>
+    <p class="section-note">// Featured work and open source contributions</p>
 
-    <div class="projects-grid" id="projects-grid">
-      {projects.map((project) => (
-        <RevealMask direction="bottom">
-          <Card as="article" glow class="project-card" data-category={project.category}>
-            <Tag variant="primary">{project.category.toUpperCase()}</Tag>
-            <h3>{project.title}</h3>
-            <p class="card-desc">{project.description}</p>
-            <div class="tags">
-              {project.technologies.map((tech) => (
-                <Tag>{tech}</Tag>
-              ))}
+  <div class="filter-chips" data-filter-section="projects">
+    <button class="filter-chip is-active" data-filter="all">All</button>
+    <button class="filter-chip" data-filter="web">Web</button>
+    <button class="filter-chip" data-filter="blockchain">Blockchain</button>
+    <button class="filter-chip" data-filter="mobile">Mobile</button>
+    <button class="filter-chip" data-filter="design">Design</button>
+  </div>
+
+  <div class="projects-grid" id="projects-grid">
+    {items.map((project) => (
+      <RevealMask direction="bottom">
+        <Card as="article" glow class="filter-item project-card glass-card card-glow" data-tags={project.data.tags.join(' ')}>
+          <Tag variant="primary">{project.data.category.toUpperCase()}</Tag>
+          <h3>{project.data.title}</h3>
+          <p class="card-desc">{project.data.description}</p>
+          <div class="tags">
+            {project.data.technologies.map((tech) => (
+              <Tag>{tech}</Tag>
+            ))}
+          </div>
+          <div class="project-footer">
+            <div class="project-links">
+              <a href={project.data.githubUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>
-            <div class="project-footer">
-              <span class="stars">★ {project.stars}</span>
-              <div class="project-links">
-                <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
-                {project.liveUrl && (
-                  <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">Live</a>
-                )}
-              </div>
-            </div>
-          </Card>
-        </RevealMask>
-      ))}
-    </div>
-</SectionWrapper>
+          </div>
+        </Card>
+      </RevealMask>
+    ))}
+  </div>
+  </div>
+</section>
 
 <script>
   import { gsap, ScrollTrigger } from '../utils/gsap-config';
   import { prefersReducedMotion } from '../utils/reduced-motion';
 
-  // --- Filter logic (always active) ---
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  const projectCards = document.querySelectorAll<HTMLElement>('.project-card');
-
-  filterButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const category = (button as HTMLElement).dataset.category || 'all';
-
-      filterButtons.forEach((item) => {
-        item.classList.remove('active');
-        item.setAttribute('aria-pressed', 'false');
-      });
-      button.classList.add('active');
-      button.setAttribute('aria-pressed', 'true');
-
-      projectCards.forEach((card) => {
-        const isVisible = category === 'all' || card.dataset.category === category;
-        card.style.display = isVisible ? 'block' : 'none';
-      });
-    });
-  });
-
   function initAnimations() {
     if (prefersReducedMotion()) {
       gsap.set('.project-card', { opacity: 1, y: 0 });
+      const scannerLineReduced = document.querySelector('#work .scanner-line');
+      if (scannerLineReduced) {
+        gsap.set(scannerLineReduced, { opacity: 1, scaleX: 1 });
+      }
       return;
     }
 
@@ -102,13 +77,45 @@ const { projects } = Astro.props;
         stagger: 0.1,
         ease: 'power3.out',
         scrollTrigger: {
-          trigger: '#projects',
+          trigger: '#work',
           start: 'top 70%',
           once: true,
         },
       }
     );
     if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+
+    // ── Scanner sweep on section title ──
+    const scannerLine = document.querySelector('#work .scanner-line');
+    if (scannerLine) {
+      const scannerFrom = gsap.fromTo(
+        scannerLine,
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          duration: 0.6,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '#work',
+            start: 'top 80%',
+            toggleActions: 'play none none none',
+          },
+        },
+      );
+      if (scannerFrom.scrollTrigger) triggers.push(scannerFrom.scrollTrigger);
+
+      const scannerTo = gsap.to(scannerLine, {
+        opacity: 0,
+        duration: 0.4,
+        delay: 0.6,
+        scrollTrigger: {
+          trigger: '#work',
+          start: 'top 80%',
+          toggleActions: 'play none none none',
+        },
+      });
+      if (scannerTo.scrollTrigger) triggers.push(scannerTo.scrollTrigger);
+    }
 
     document.addEventListener('astro:before-swap', () => {
       triggers.forEach((t) => t.kill());
@@ -124,31 +131,6 @@ const { projects } = Astro.props;
 </script>
 
 <style>
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.4rem;
-  }
-
-  .filter-btn {
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--muted);
-    padding: 0.45rem 0.8rem;
-    border-radius: 0.6rem;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: color 0.2s ease, border-color 0.2s ease;
-  }
-
-  .filter-btn.active,
-  .filter-btn:hover {
-    color: var(--text);
-    border-color: rgba(45, 226, 230, 0.7);
-  }
-
   .projects-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -157,33 +139,40 @@ const { projects } = Astro.props;
 
   .project-card {
     padding: 1.25rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     opacity: 0;
+    transition: border-color 0.3s ease, filter 0.3s ease;
+    overflow: hidden;
   }
 
   .project-card:hover {
-    border-color: rgba(45, 226, 230, 0.7);
-    box-shadow: 0 0 24px rgba(45, 226, 230, 0.18);
-    transform: translateY(-2px);
+    border-color: var(--primary-container);
+    filter: drop-shadow(0 0 12px rgba(0, 242, 255, 0.25));
+  }
+
+  [data-theme="light"] .project-card:hover {
+    border-color: var(--primary-container);
+    filter: none;
+  }
+
+  .scanner-line {
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary-container);
+    transform: scaleX(0);
+    transform-origin: left;
+    opacity: 0.8;
+  }
+
+  .section-title--scanner {
+    position: relative;
   }
 
   .project-card h3 {
     margin: 0.4rem 0 0.55rem;
     font-family: var(--font-mono);
-  }
-
-  .card-tag {
-    display: inline-block;
-    padding: 0.2rem 0.45rem;
-    font-size: 0.74rem;
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
-    color: var(--primary);
-    font-family: var(--font-mono);
-    margin: 0;
   }
 
   .card-desc {
@@ -200,26 +189,13 @@ const { projects } = Astro.props;
     margin: 0.9rem 0;
   }
 
-  .tag {
-    padding: 0.2rem 0.45rem;
-    font-size: 0.74rem;
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
-    color: var(--muted);
-    font-family: var(--font-mono);
-  }
-
   .project-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 0.75rem;
     align-items: center;
     font-size: 0.86rem;
     margin-top: 0.6rem;
-  }
-
-  .stars {
-    color: var(--muted);
   }
 
   .project-links {
@@ -228,10 +204,10 @@ const { projects } = Astro.props;
   }
 
   .project-links a {
-    color: var(--primary);
+    color: var(--primary-container);
     font-family: var(--font-mono);
     font-size: 0.85rem;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--transition-fast);
   }
 
   .project-links a:hover {
@@ -247,6 +223,13 @@ const { projects } = Astro.props;
   @media (min-width: 1040px) {
     .projects-grid {
       grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* ── Reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    .project-card:hover {
+      filter: none;
     }
   }
 </style>

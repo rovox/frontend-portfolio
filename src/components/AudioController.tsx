@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import * as Tone from 'tone';
+
+type ToneModule = typeof import('tone');
 
 export default function AudioController() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -7,16 +8,17 @@ export default function AudioController() {
   const [isReady, setIsReady] = useState(false);
   const [needsInteraction, setNeedsInteraction] = useState(false);
   const [bars, setBars] = useState([0, 0, 0]);
+  const toneModuleRef = useRef<ToneModule | null>(null);
 
   const toneRef = useRef<{
-    bassSynth: Tone.AMSynth | null;
-    leadSynth: Tone.Synth | null;
-    drumSynth: Tone.NoiseSynth | null;
-    loop: Tone.Loop | null;
-    reverb: Tone.Reverb | null;
-    bitCrusher: Tone.BitCrusher | null;
-    filter: Tone.Filter | null;
-    analyzer: Tone.Analyser | null;
+    bassSynth: InstanceType<ToneModule['AMSynth']> | null;
+    leadSynth: InstanceType<ToneModule['Synth']> | null;
+    drumSynth: InstanceType<ToneModule['NoiseSynth']> | null;
+    loop: InstanceType<ToneModule['Loop']> | null;
+    reverb: InstanceType<ToneModule['Reverb']> | null;
+    bitCrusher: InstanceType<ToneModule['BitCrusher']> | null;
+    filter: InstanceType<ToneModule['Filter']> | null;
+    analyzer: InstanceType<ToneModule['Analyser']> | null;
     meterInterval: number | null;
   }>({
     bassSynth: null,
@@ -31,6 +33,7 @@ export default function AudioController() {
   });
 
   const disposeAudio = useCallback(() => {
+    const Tone = toneModuleRef.current;
     const t = toneRef.current;
     if (t.meterInterval) clearInterval(t.meterInterval);
     t.bassSynth?.dispose();
@@ -41,12 +44,21 @@ export default function AudioController() {
     t.bitCrusher?.dispose();
     t.filter?.dispose();
     t.analyzer?.dispose();
-    Tone.Transport.stop();
-    Tone.Transport.cancel();
+    Tone?.Transport.stop();
+    Tone?.Transport.cancel();
+  }, []);
+
+  const loadTone = useCallback(async () => {
+    if (!toneModuleRef.current) {
+      toneModuleRef.current = await import('tone');
+    }
+
+    return toneModuleRef.current;
   }, []);
 
   const startAudio = useCallback(async () => {
     try {
+      const Tone = await loadTone();
       await Tone.start();
       setIsReady(true);
       setNeedsInteraction(false);
@@ -188,13 +200,16 @@ export default function AudioController() {
       console.warn('Audio start failed:', err);
       setNeedsInteraction(true);
     }
-  }, [volume, disposeAudio]);
+  }, [volume, disposeAudio, loadTone]);
 
   const togglePlay = useCallback(async () => {
     if (!isReady) {
       await startAudio();
       return;
     }
+
+    const Tone = toneModuleRef.current;
+    if (!Tone) return;
 
     if (isPlaying) {
       Tone.Transport.pause();
@@ -245,7 +260,7 @@ export default function AudioController() {
   // Volume control
   useEffect(() => {
     if (isReady) {
-      Tone.Destination.volume.rampTo(volume, 0.1);
+      toneModuleRef.current?.Destination.volume.rampTo(volume, 0.1);
     }
   }, [volume, isReady]);
 
@@ -261,9 +276,9 @@ export default function AudioController() {
         alignItems: 'center',
         gap: '0.75rem',
         padding: '0.6rem 1rem',
-        background: 'rgba(10, 16, 28, 0.85)',
-        border: '1px solid rgba(45, 226, 230, 0.3)',
-        borderRadius: '0.5rem',
+        background: 'var(--surface)',
+        border: '1px solid color-mix(in srgb, var(--primary-container) 30%, transparent)',
+        borderRadius: 'var(--radius-lg)',
         backdropFilter: 'blur(10px)',
         fontFamily: 'var(--font-mono)',
         fontSize: '0.8rem',
@@ -272,17 +287,17 @@ export default function AudioController() {
     >
       {needsInteraction && (
         <span style={{ color: 'var(--primary)', fontSize: '0.75rem', marginRight: '0.5rem' }}>
-          🔊 Click para música
+          🔊 Click for music
         </span>
       )}
 
       <button
         onClick={togglePlay}
-        aria-label={isPlaying ? 'Pausar música' : 'Reproducir música'}
+        aria-label={isPlaying ? 'Pause music' : 'Play music'}
         style={{
           background: 'none',
-          border: '1px solid rgba(45, 226, 230, 0.4)',
-          borderRadius: '0.3rem',
+          border: '1px solid color-mix(in srgb, var(--primary-container) 40%, transparent)',
+          borderRadius: 'var(--radius-sm)',
           padding: '0.35rem 0.6rem',
           color: 'var(--primary)',
           cursor: 'pointer',
@@ -294,12 +309,12 @@ export default function AudioController() {
           transition: 'all 0.2s ease',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(45, 226, 230, 0.1)';
-          e.currentTarget.style.borderColor = 'rgba(45, 226, 230, 0.7)';
+          e.currentTarget.style.background = 'color-mix(in srgb, var(--primary-container) 10%, transparent)';
+          e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--primary-container) 70%, transparent)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.background = 'none';
-          e.currentTarget.style.borderColor = 'rgba(45, 226, 230, 0.4)';
+          e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--primary-container) 40%, transparent)';
         }}
       >
         {isPlaying ? '⏸' : '▶'}
@@ -334,7 +349,7 @@ export default function AudioController() {
         max="0"
         value={volume}
         onChange={(e) => setVolume(Number(e.target.value))}
-        aria-label="Volumen"
+        aria-label="Volume"
         style={{
           width: '60px',
           height: '3px',

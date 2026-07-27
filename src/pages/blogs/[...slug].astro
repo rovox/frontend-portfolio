@@ -1,26 +1,7 @@
 ---
-import { getCollection, render } from 'astro:content';
-import BlogLayout from '../../layouts/BlogLayout.astro';
-
-export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+// Blog slug pages — disabled (spec H). Restore from git history to re-enable.
+export function getStaticPaths() {
+  return [];
 }
-
-const { post } = Astro.props;
-const { Content } = await render(post);
 ---
-
-<BlogLayout
-  title={post.data.title}
-  pubDate={post.data.pubDate}
-  description={post.data.description}
-  author={post.data.author}
-  image={post.data.image}
-  tags={post.data.tags}
->
-  <Content />
-</BlogLayout>
+<!-- Blog is currently disabled. -->

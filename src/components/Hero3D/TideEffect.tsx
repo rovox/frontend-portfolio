@@ -3,6 +3,7 @@ import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import type { Mesh, ShaderMaterial } from 'three';
 import { DoubleSide, Vector2 } from 'three';
 import { createWaterUniforms, vertexShader, fragmentShader } from './WaterShader';
+import { gsap } from '../../utils/gsap-config';
 
 interface WaterPlaneProps {
   lowPower?: boolean;
@@ -11,7 +12,7 @@ interface WaterPlaneProps {
 function WaterPlane({ lowPower = false }: WaterPlaneProps) {
   const meshRef = useRef<Mesh>(null);
   const mouseRef = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
-  const { viewport } = useThree();
+  const { viewport, invalidate } = useThree();
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     mouseRef.current.x = e.clientX / window.innerWidth;
@@ -23,6 +24,28 @@ function WaterPlane({ lowPower = false }: WaterPlaneProps) {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [handleMouseMove]);
 
+  // Theme-aware water colors
+  useEffect(() => {
+    const applyThemeColors = () => {
+      if (!meshRef.current) return;
+      const material = meshRef.current.material as ShaderMaterial;
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        material.uniforms.uColorA.value.set('#bae6fd');
+        material.uniforms.uColorB.value.set('#7dd3fc');
+      } else {
+        material.uniforms.uColorA.value.set('#002d5f');
+        material.uniforms.uColorB.value.set('#5052c8');
+      }
+    };
+
+    // Set initial color based on current theme
+    applyThemeColors();
+
+    window.addEventListener('theme-changed', applyThemeColors);
+    return () => window.removeEventListener('theme-changed', applyThemeColors);
+  }, []);
+
   useFrame((state) => {
     if (!meshRef.current) return;
     const material = meshRef.current.material as ShaderMaterial;
@@ -31,6 +54,9 @@ function WaterPlane({ lowPower = false }: WaterPlaneProps) {
     const current = material.uniforms.uMouse.value as Vector2;
     current.x += (target.x - current.x) * 0.05;
     current.y += (target.y - current.y) * 0.05;
+
+    // Keep animating with demand frameloop
+    invalidate();
   });
 
   // Reduced geometry on low-power / reduced-motion devices
@@ -54,8 +80,8 @@ function WaterPlane({ lowPower = false }: WaterPlaneProps) {
 }
 
 export default function TideEffect() {
-  const [isReady, setIsReady] = useState(false);
   const [lowPower, setLowPower] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -66,35 +92,55 @@ export default function TideEffect() {
     return () => mql.removeEventListener('change', handleChange);
   }, []);
 
+  // ScrollTrigger: fade out and lift the tide on scroll
+  // Skipped entirely if user prefers reduced motion
   useEffect(() => {
-    const handleReady = () => setIsReady(true);
+    if (lowPower || !wrapperRef.current) return;
 
-    if ((window as any).__portfolioLoaderDone) {
-      handleReady();
-    } else {
-      window.addEventListener('preloader:done', handleReady, { once: true });
-    }
+    const ctx = gsap.context(() => {
+      gsap.to(wrapperRef.current, {
+        y: '-25vh',
+        opacity: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: document.body,
+          start: 'top top',
+          end: '80vh top',
+          scrub: 0.6,
+        },
+      });
+    });
 
-    return () => window.removeEventListener('preloader:done', handleReady);
-  }, []);
+    return () => ctx.revert();
+  }, [lowPower]);
 
   return (
     <div
+      ref={wrapperRef}
       role="img"
       aria-label="Interactive 3D water visualization background"
       style={{
         position: 'fixed',
-        bottom: 0,
+        top: 0,
         left: 0,
         width: '100%',
-        height: '35vh',
+        height: '100vh',
         zIndex: 5,
         pointerEvents: 'none',
-        background: 'transparent',
+        opacity: 1,
       }}
     >
-      {isReady && (
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          height: '30vh',
+        }}
+      >
         <Canvas
+          frameloop="always"
           camera={{ position: [0, 2.5, 4], fov: 50 }}
           gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
           dpr={lowPower ? [1, 1] : [1, 1.5]}
@@ -105,7 +151,7 @@ export default function TideEffect() {
           <pointLight position={[-3, 2, -2]} intensity={0.3} color="#2de2e6" />
           <WaterPlane lowPower={lowPower} />
         </Canvas>
-      )}
+      </div>
     </div>
   );
 }
