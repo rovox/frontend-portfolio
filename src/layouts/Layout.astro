@@ -3,6 +3,8 @@ import { ClientRouter } from 'astro:transitions';
 import Navbar from '../components/Navbar.astro';
 import AudioController from '../components/AudioController.tsx';
 import LoadingScreen from '../components/LoadingScreen.astro';
+import ScrollProgressBar from '../components/effects/ScrollProgressBar';
+import ScrollInactivityHint from '../components/effects/ScrollInactivityHint';
 
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
@@ -41,7 +43,10 @@ const { title } = Astro.props;
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
-    <header><Navbar /></header>
+    <header>
+      <Navbar />
+      <ScrollProgressBar client:only="react" />
+    </header>
     
     <LoadingScreen />
     
@@ -117,6 +122,7 @@ const { title } = Astro.props;
     </script>
 
     <AudioController client:only="react" />
+    <ScrollInactivityHint client:only="react" />
 
     <!-- Shared filter logic for section filter chips -->
     <script>
@@ -564,6 +570,17 @@ const { title } = Astro.props;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.06);
   }
 
+  /* Light mode: terminal titlebar */
+  :root[data-theme="light"] .terminal-titlebar {
+    background: rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  /* Light mode: terminal body text */
+  :root[data-theme="light"] .terminal-body {
+    color: var(--text);
+  }
+
   /* Transition all theme-aware properties */
   @media (prefers-reduced-motion: no-preference) {
     html,
@@ -571,6 +588,43 @@ const { title } = Astro.props;
     html *::before,
     html *::after {
       transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease;
+    }
+  }
+
+  /* ─── Scroll Progress Bar shimmer ─── */
+  @keyframes shimmer {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+      box-shadow:
+        0 0 15px var(--primary-container),
+        0 0 30px var(--primary-container),
+        0 0 60px var(--primary-container);
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-progress-bar {
+      animation: none !important;
+    }
+    .scroll-inactivity-hint {
+      animation: none !important;
     }
   }
 </style>

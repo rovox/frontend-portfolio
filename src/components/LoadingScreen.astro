@@ -24,17 +24,12 @@
     <div class="terminal-window">
       <div class="terminal-line">
         <span class="terminal-prompt">PS C:\></span>
-        <span class="terminal-typed" data-text="Jose Roberto"></span>
-        <span class="terminal-cursor">_</span>
-      </div>
-      <div class="terminal-line">
-        <span class="terminal-prompt">PS C:\></span>
-        <span class="terminal-typed" data-text="Vargas Orellana"></span>
-        <span class="terminal-cursor">_</span>
-      </div>
-      <div class="terminal-line">
-        <span class="terminal-prompt">PS C:\></span>
         <span class="terminal-typed" data-text="Software Engineer"></span>
+        <span class="terminal-cursor">_</span>
+      </div>
+      <div class="terminal-line">
+        <span class="terminal-prompt">PS C:\></span>
+        <span class="terminal-typed" data-text="Data Science Student"></span>
         <span class="terminal-cursor">_</span>
       </div>
       <div class="terminal-line terminal-loading">
@@ -430,19 +425,14 @@
 
       var line1 = document.querySelector('#scene-2 .terminal-line:nth-child(1) .terminal-typed');
       var line2 = document.querySelector('#scene-2 .terminal-line:nth-child(2) .terminal-typed');
-      var line3 = document.querySelector('#scene-2 .terminal-line:nth-child(3) .terminal-typed');
 
-      // Line 1
+      // Line 1: "Software Engineer"
       tl.set('#scene-2 .terminal-line:nth-child(1)', { opacity: 1 }, 0);
-      tl.add(typeTextTimeline(line1, 'Jose Roberto', 0.6), 0);
+      tl.add(typeTextTimeline(line1, 'Software Engineer', 0.8), 0);
 
-      // Line 2
-      tl.set('#scene-2 .terminal-line:nth-child(2)', { opacity: 1 }, 0.7);
-      tl.add(typeTextTimeline(line2, 'Vargas Orellana', 0.7), 0.7);
-
-      // Line 3
-      tl.set('#scene-2 .terminal-line:nth-child(3)', { opacity: 1 }, 1.4);
-      tl.add(typeTextTimeline(line3, 'Software Engineer', 0.6), 1.4);
+      // Line 2: "Data Science Student"
+      tl.set('#scene-2 .terminal-line:nth-child(2)', { opacity: 1 }, 1.0);
+      tl.add(typeTextTimeline(line2, 'Data Science Student', 0.8), 1.0);
 
       // Cursor blink animation
       tl.to(

@@ -3,7 +3,8 @@ import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import type { Mesh, ShaderMaterial } from 'three';
 import { DoubleSide, Vector2 } from 'three';
 import { createWaterUniforms, vertexShader, fragmentShader } from './WaterShader';
-import { gsap } from '../../utils/gsap-config';
+import { ScrollTrigger } from '../../utils/gsap-config';
+import { logLifecycle } from '../../utils/debug';
 
 interface WaterPlaneProps {
   lowPower?: boolean;
@@ -12,7 +13,8 @@ interface WaterPlaneProps {
 function WaterPlane({ lowPower = false }: WaterPlaneProps) {
   const meshRef = useRef<Mesh>(null);
   const mouseRef = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
-  const { viewport, invalidate } = useThree();
+  const startTime = useRef(performance.now() * 0.001);
+  const { viewport } = useThree();
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     mouseRef.current.x = e.clientX / window.innerWidth;
@@ -46,17 +48,15 @@ function WaterPlane({ lowPower = false }: WaterPlaneProps) {
     return () => window.removeEventListener('theme-changed', applyThemeColors);
   }, []);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (!meshRef.current) return;
     const material = meshRef.current.material as ShaderMaterial;
-    material.uniforms.uTime.value = state.clock.elapsedTime;
+    // Use performace.now() to avoid deprecated THREE.Clock
+    material.uniforms.uTime.value = performance.now() * 0.001 - startTime.current;
     const target = mouseRef.current;
     const current = material.uniforms.uMouse.value as Vector2;
     current.x += (target.x - current.x) * 0.05;
     current.y += (target.y - current.y) * 0.05;
-
-    // Keep animating with demand frameloop
-    invalidate();
   });
 
   // Reduced geometry on low-power / reduced-motion devices
@@ -81,6 +81,8 @@ function WaterPlane({ lowPower = false }: WaterPlaneProps) {
 
 export default function TideEffect() {
   const [lowPower, setLowPower] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const visibleRef = useRef(true);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -92,26 +94,42 @@ export default function TideEffect() {
     return () => mql.removeEventListener('change', handleChange);
   }, []);
 
-  // ScrollTrigger: fade out and lift the tide on scroll
-  // Skipped entirely if user prefers reduced motion
+  // ScrollTrigger: bidirectional fade + lift, tied directly to scroll.
+  // This is a scroll-DRIVEN visibility mechanism (user-controlled), NOT an
+  // autonomous animation — it must run even under prefers-reduced-motion,
+  // otherwise the waves would stay visible forever.
+  // lowPower only reduces geometry/dpr, never disables this effect.
   useEffect(() => {
-    if (lowPower || !wrapperRef.current) return;
+    if (!wrapperRef.current) return;
 
-    const ctx = gsap.context(() => {
-      gsap.to(wrapperRef.current, {
-        y: '-25vh',
-        opacity: 0,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: document.body,
-          start: 'top top',
-          end: '80vh top',
-          scrub: 0.6,
-        },
-      });
+    const st = ScrollTrigger.create({
+      trigger: '.hero',
+      start: 'top top',
+      end: 'bottom top',
+      onUpdate: (self) => {
+        const { progress } = self;
+        const el = wrapperRef.current!;
+
+        // Progressive fade + lift — tied to hero scroll
+        el.style.opacity = String(1 - progress);
+        el.style.transform = `translateY(${-10 * progress}vh)`;
+
+        // Once past the hero section, unmount the 3D canvas entirely —
+        // stops all GPU/shader work, not just visual hiding.
+        const show = progress < 0.99;
+        el.style.visibility = show ? 'visible' : 'hidden';
+        if (show !== visibleRef.current) {
+          visibleRef.current = show;
+          setIsVisible(show);
+          logLifecycle(
+            'tide',
+            show ? 'waves visible — canvas remounted' : 'waves hidden — canvas unmounted, GPU stopped'
+          );
+        }
+      },
     });
 
-    return () => ctx.revert();
+    return () => st.kill();
   }, [lowPower]);
 
   return (
@@ -139,18 +157,20 @@ export default function TideEffect() {
           height: '30vh',
         }}
       >
-        <Canvas
-          frameloop="always"
-          camera={{ position: [0, 2.5, 4], fov: 50 }}
-          gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
-          dpr={lowPower ? [1, 1] : [1, 1.5]}
-          style={{ background: 'transparent' }}
-        >
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[5, 8, 3]} intensity={0.8} color="#aaddff" />
-          <pointLight position={[-3, 2, -2]} intensity={0.3} color="#2de2e6" />
-          <WaterPlane lowPower={lowPower} />
-        </Canvas>
+        {isVisible && (
+          <Canvas
+            frameloop="always"
+            camera={{ position: [0, 2.5, 4], fov: 50 }}
+            gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
+            dpr={lowPower ? [1, 1] : [1, 1.5]}
+            style={{ background: 'transparent' }}
+          >
+            <ambientLight intensity={0.4} />
+            <directionalLight position={[5, 8, 3]} intensity={0.8} color="#aaddff" />
+            <pointLight position={[-3, 2, -2]} intensity={0.3} color="#2de2e6" />
+            <WaterPlane lowPower={lowPower} />
+          </Canvas>
+        )}
       </div>
     </div>
   );

@@ -10,7 +10,8 @@ import LeadershipSection from '../components/LeadershipSection.astro';
 /* import LatestPosts from '../components/LatestPosts.astro'; */  // Blog disabled — see specs/bugfix-a11y-splash-round1.md
 import ContactSection from '../components/ContactSection.astro';
 import LazyTideEffect from '../components/Hero3D/LazyTideEffect.tsx';
-import ParallaxLayer from '../components/effects/ParallaxLayer.astro';
+// ParallaxLayer removed from hero — the transformed wrapper breaks
+// GSAP position:fixed pinning used by the terminal journey.
 
 // --- Content Collections ---
 const skills = await getCollection('skills');
@@ -42,9 +43,7 @@ const socialLinks = [
 
 <Layout title="Jose Roberto Vargas Orellana | Portfolio">
   <LazyTideEffect client:only="react" />
-  <ParallaxLayer speed={-0.3}>
-    <HeroSection />
-  </ParallaxLayer>
+  <HeroSection />
   <SkillsSection items={skills} />
   <ExperienceSection items={experiences} />
   <ProjectsSection items={projects} />

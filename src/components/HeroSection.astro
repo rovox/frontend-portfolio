@@ -7,16 +7,21 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
   <div class="container hero-container">
 
     <!-- Label -->
-    <p class="hero-label">&lt;Engineering Digital Excellence /&gt;</p>
+    <p class="hero-label">&lt;Computer Science Engineer /&gt;</p>
 
     <!-- Photo + Name -->
     <div class="hero-main">
       <div
         class="hero-photo"
         role="img"
-        aria-label="Profile photo of Jose Roberto Vargas Orellana"
+        aria-label="Profile photo of ROVOX - Software Engineer"
       >
-        <span class="hero-photo-initials">JRVO</span>
+        <img
+          src="/images/profesional_photo.png"
+          alt="Jose Roberto Vargas Orellana - Software Engineer"
+          loading="eager"
+          decoding="async"
+        />
       </div>
 
       <div class="hero-info">
@@ -34,33 +39,43 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
           <span class="scanner-line" aria-hidden="true"></span>
         </h1>
         <p class="hero-title">Software Engineer</p>
-      </div>
-    </div>
 
-    <!-- Action Buttons -->
-    <div class="hero-actions">
-      <a
-        href="https://wa.me/59162642144"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="btn btn-primary"
-      >
-        WhatsApp
-      </a>
-      <a
-        href="mailto:varor.joseroberto@gmail.com"
-        class="btn btn-primary"
-      >
-        Gmail
-      </a>
-      <a
-        href={CV_DOWNLOAD_URL_EN}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="btn btn-ghost"
-      >
-        Download CV
-      </a>
+        <!-- Action Buttons -->
+        <div class="hero-actions">
+          <a
+            href="https://wa.me/59162642144"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-primary btn-icon"
+            aria-label="WhatsApp"
+          >
+            <img
+              src="/icons/whatsapp-logo-svgrepo-com.svg"
+              alt="whatsapp icon contact"
+              style="min-height: 45px; height: 55px; width: auto; object-fit: contain;"
+            />
+          </a>
+          <a
+            href="mailto:varor.joseroberto@gmail.com"
+            class="btn btn-primary btn-icon"
+            aria-label="Email"
+          >
+            <img
+              src="/icons/gmail-svgrepo-com.svg"
+              alt="gmail icon contact"
+              style="min-height: 45px; height: 55px; width: auto; object-fit: contain;"
+            />
+          </a>
+          <a
+            href={CV_DOWNLOAD_URL_EN}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-ghost"
+          >
+            Download CV
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- Terminal Card -->
@@ -74,80 +89,43 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
       <div class="terminal-body">
         <p class="terminal-prompt">
           <span class="prompt-arrow">&gt;</span>
-          <span class="prompt-path"> ~/portfolio</span>
-          <span class="prompt-cmd"> cat intro.md</span>
+          <span class="prompt-path"> ~/about</span>
+          <span class="prompt-cmd"> cat rovox.md</span>
         </p>
         <p class="terminal-line">
-          <span class="line-hash">#</span> Designing systems that scale.
+          <span class="line-hash">#</span> Software Engineer & Data Scientist
         </p>
         <p class="terminal-line">
-          <span class="line-hash">#</span> Building interfaces that inspire.
+          <span class="line-hash">#</span> Full Stack Web/Mobile/Desktop
+        </p>
+        <p class="terminal-line">
+          <span class="line-hash">#</span> Bolivia 🇧🇴 | Open Source Advocate
         </p>
         <p class="terminal-line terminal-line-last">
-          <span class="line-hash">#</span> Focusing on high-performance web
-          architecture and human-centered design principles.
+          <span class="line-hash">#</span> Building tools that empower developers
         </p>
         <p class="terminal-prompt terminal-prompt-bottom">
           <span class="prompt-arrow">&gt;</span>
-          <span class="prompt-path"> ~/portfolio</span>
+          <span class="prompt-path"> ~/about</span>
           <span class="cursor-blink" aria-hidden="true">&#9608;</span>
         </p>
       </div>
     </div>
 
   </div>
-
-  <!-- Scroll Indicator -->
-  <div class="scroll-indicator" aria-hidden="true">
-    <span>Scroll</span>
-    <div class="scroll-arrow"></div>
-  </div>
 </section>
 
 <script>
   import { defineModule } from '../utils/lifecycle';
-  import { gsap } from '../utils/gsap-config';
+  import { gsap, ScrollTrigger } from '../utils/gsap-config';
   import { prefersReducedMotion } from '../utils/reduced-motion';
 
   defineModule('hero', () => {
-    if (prefersReducedMotion()) {
-      gsap.set(
-        [
-          '.hero-label',
-          '.hero-photo',
-          '.hero-name .split-item',
-          '.hero-title',
-          '.hero-terminal',
-          '.terminal-prompt',
-          '.terminal-line',
-          '.terminal-prompt-bottom',
-          '.hero-actions .btn',
-        ],
-        { opacity: 1, y: 0, scale: 1, filter: 'none', x: 0 },
-      );
-      const scannerLineReduced = document.querySelector('.hero .scanner-line');
-      if (scannerLineReduced) {
-        gsap.set(scannerLineReduced, { opacity: 1, scaleX: 1 });
-      }
-      return; // no destroy needed for reduced-motion path
-    }
-
     const tweens: gsap.core.Tween[] = [];
-    let scrollTL: gsap.core.Timeline | null = null;
-    let pendingPreloaderCleanup: Array<() => void> = [];
+    const terminalTriggers: ScrollTrigger[] = [];
+    const pendingPreloaderCleanup: Array<() => void> = [];
 
     const startHeroAnimation = () => {
-      // ── Scroll indicator fade only (no container transform — ParallaxLayer handles parallax) ──
-      scrollTL = gsap.timeline({
-        scrollTrigger: {
-          trigger: '.hero',
-          start: 'top top',
-          end: '60% top',
-          scrub: true,
-        },
-      });
-      scrollTL.to('.scroll-indicator', { opacity: 0, ease: 'none' }, 0);
-
       // ── 1. Label ──
       tweens.push(
         gsap.fromTo(
@@ -259,27 +237,119 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
       }
     };
 
+    // ── Terminal journey: lift → viewport center → hold → fade before skills ──
+    const initTerminalAnimation = () => {
+      const terminal = document.querySelector('.hero-terminal') as HTMLElement | null;
+      if (!terminal) return;
+
+      // Pin the terminal when its center reaches the viewport center.
+      // It stays centered while the rest of the page scrolls,
+      // and releases right before the skills section.
+      terminalTriggers.push(
+        ScrollTrigger.create({
+          trigger: '.hero-terminal',
+          start: 'center center',
+          endTrigger: '#skills',
+          end: 'top 65%',
+          pin: true,
+          pinSpacing: false,
+        }),
+      );
+
+      // Desktop: terminal starts in the right grid column —
+      // drift it horizontally toward the viewport center as it lifts.
+      if (window.innerWidth >= 1040) {
+        const rect = terminal.getBoundingClientRect();
+        const offsetX = window.innerWidth / 2 - (rect.left + rect.width / 2);
+        if (Math.abs(offsetX) > 1) {
+          const xTween = gsap.to(terminal, {
+            x: offsetX,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.hero-terminal',
+              start: 'center center',
+              end: 'center 35%',
+              scrub: 0.5,
+            },
+          });
+          if (xTween.scrollTrigger) terminalTriggers.push(xTween.scrollTrigger);
+        }
+      }
+
+      // Fade out as the skills section approaches — the content
+      // "loses visibility" before the next section takes over.
+      const fadeTween = gsap.to(terminal, {
+        opacity: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#skills',
+          start: 'top 85%',
+          end: 'top 65%',
+          scrub: 0.5,
+        },
+      });
+      if (fadeTween.scrollTrigger) terminalTriggers.push(fadeTween.scrollTrigger);
+    };
+
     // ── Preloader lifecycle ──
-    if ((window as any).__portfolioLoaderDone) {
-      startHeroAnimation();
+    // The terminal journey is SCROLL-DRIVEN (user-controlled motion), so it
+    // must initialize even under prefers-reduced-motion — only the autonomous
+    // entrance tweens are skipped for reduced-motion users.
+    const afterPreloader = (fn: () => void) => {
+      if ((window as any).__portfolioLoaderDone) {
+        fn();
+      } else {
+        window.addEventListener('preloader:done', fn, { once: true });
+        pendingPreloaderCleanup.push(() =>
+          window.removeEventListener('preloader:done', fn),
+        );
+      }
+    };
+
+    // Journey always initializes (pin + drift + fade are scroll-linked)
+    afterPreloader(initTerminalAnimation);
+
+    if (prefersReducedMotion()) {
+      // Reduced motion: show everything instantly, no entrance tweens
+      gsap.set(
+        [
+          '.hero-label',
+          '.hero-photo',
+          '.hero-name .split-item',
+          '.hero-title',
+          '.hero-terminal',
+          '.terminal-prompt',
+          '.terminal-line',
+          '.terminal-prompt-bottom',
+          '.hero-actions .btn',
+        ],
+        { opacity: 1, y: 0, scale: 1, filter: 'none', x: 0 },
+      );
+      const scannerLineReduced = document.querySelector('.hero .scanner-line');
+      if (scannerLineReduced) {
+        gsap.set(scannerLineReduced, { opacity: 1, scaleX: 1 });
+      }
     } else {
-      const heroTimer = setTimeout(startHeroAnimation, 8000);
-      const onPreloaderDone = () => startHeroAnimation();
-      const clearTimer = () => clearTimeout(heroTimer);
-      window.addEventListener('preloader:done', onPreloaderDone, { once: true });
-      window.addEventListener('preloader:done', clearTimer, { once: true });
-      pendingPreloaderCleanup.push(() => {
+      // Entrance tweens only when motion is allowed
+      let heroStarted = false;
+      const guardedStart = () => {
+        if (heroStarted) return;
+        heroStarted = true;
+        startHeroAnimation();
+      };
+      const heroTimer = setTimeout(guardedStart, 8000);
+      pendingPreloaderCleanup.push(() => clearTimeout(heroTimer));
+      afterPreloader(() => {
         clearTimeout(heroTimer);
-        window.removeEventListener('preloader:done', onPreloaderDone);
-        window.removeEventListener('preloader:done', clearTimer);
+        guardedStart();
       });
     }
 
     return () => {
       tweens.forEach((t) => t.kill());
       tweens.length = 0;
-      scrollTL?.kill();
-      scrollTL = null;
+      terminalTriggers.forEach((st) => st.kill());
+      terminalTriggers.length = 0;
       pendingPreloaderCleanup.forEach((fn) => fn());
       pendingPreloaderCleanup.length = 0;
     };
@@ -293,7 +363,7 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
     justify-content: center;
     text-align: center;
     padding-top: 10vh;
-    padding-bottom: max(30vh, 10vh);
+    padding-bottom: 40vh; /* Suficiente espacio para la zona de olas */
   }
 
   .hero .container {
@@ -344,26 +414,22 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
 
   /* ── Photo ── */
   .hero-photo {
-    width: clamp(120px, 20vw, 200px);
-    height: clamp(120px, 20vw, 200px);
+    width: auto;
+    height: 580px;
+    aspect-ratio: 1/1;
     border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, #00dbe7, #00696f);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
     border: 2px solid var(--primary-container);
     box-shadow: 0 0 24px rgba(0, 242, 255, 0.12);
-    flex-shrink: 0;
+    /* flex-shrink: 0; */
+    position: relative;
   }
 
-  .hero-photo-initials {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: clamp(2rem, 6vw, 4rem);
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    user-select: none;
+  .hero-photo img {
+    width: 100%;
+    height: auto;
   }
+
 
   /* ── Name ── */
   .hero-info {
@@ -415,7 +481,23 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+  }
+
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    min-width: 50px;
+    min-height: 50px;
+    border-radius: var(--radius-md);
+  }
+
+  .btn-icon img {
+    display: block;
   }
 
   /* ── Terminal Card ── */
@@ -425,6 +507,10 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
     overflow: hidden;
     text-align: left;
     margin-top: 0.25rem;
+    /* No sticky — GSAP pin controls the journey (lift → center → hold → fade) */
+    position: relative;
+    z-index: 20;
+    will-change: transform, opacity;
   }
 
   .terminal-titlebar {
@@ -509,49 +595,6 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
     }
   }
 
-  /* ── Scroll Indicator ── */
-  .scroll-indicator {
-    position: absolute;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: var(--fs-label);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    z-index: 6;
-  }
-
-  .scroll-arrow {
-    width: 20px;
-    height: 20px;
-    border-right: 2px solid var(--primary-container);
-    border-bottom: 2px solid var(--primary-container);
-    transform: rotate(45deg);
-    animation: hero-bounce-scroll 2s ease infinite;
-  }
-
-  @keyframes hero-bounce-scroll {
-    0%,
-    20%,
-    50%,
-    80%,
-    100% {
-      transform: rotate(45deg) translateY(0);
-    }
-    40% {
-      transform: rotate(45deg) translateY(6px);
-    }
-    60% {
-      transform: rotate(45deg) translateY(3px);
-    }
-  }
-
   /* ── Desktop: side-by-side photo + info ── */
   @media (min-width: 720px) {
     .hero-main {
@@ -567,26 +610,45 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
     .hero-name {
       align-items: flex-start;
     }
+
+    .hero-actions {
+      justify-content: flex-start;
+    }
   }
 
   /* ── Wide desktop: top padding tweak ── */
   @media (min-width: 1040px) {
     .hero {
       padding-top: 12vh;
-      padding-bottom: max(30vh, 12vh);
+      padding-bottom: 40vh;
+    }
+
+    .hero .container {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 3rem;
+      align-items: start;
     }
 
     .hero-main {
+      grid-column: 1;
       gap: 3rem;
+    }
+
+    .hero-terminal {
+      grid-column: 2;
+      max-width: 400px;
+      margin-top: 0;
+    }
+
+    .hero-photo {
+      max-width: 300px;
+      height: 200px;
     }
   }
 
   /* ── Reduced motion ── */
   @media (prefers-reduced-motion: reduce) {
-    .scroll-arrow {
-      animation: none;
-    }
-
     .cursor-blink {
       animation: none;
       opacity: 1;
@@ -612,7 +674,4 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
     background: var(--primary-container);
   }
 
-  [data-theme="light"] .scroll-arrow {
-    border-color: var(--primary-container);
-  }
 </style>

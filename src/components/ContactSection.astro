@@ -66,21 +66,22 @@ function linkAttrs(href: string) {
 
     <!-- Footer (outside the glass card) -->
     <footer class="contact-footer">
-      <p class="footer-name">JROBERTO VARGAS ORELLANA</p>
+      <p class="footer-name">ROVOX</p>
       <p class="footer-title">Software Engineer</p>
 
       <nav class="footer-links" aria-label="Social links">
-        {
-          socialLinks.map((link) => (
-            <a
-              href={link.href}
-              class="footer-link"
-              {...linkAttrs(link.href)}
-            >
-              {link.label}
-            </a>
-          ))
-        }
+        <a href="https://github.com/rovox" target="_blank" rel="noopener noreferrer" class="footer-link" aria-label="GitHub">
+          <img src="/icons/github-svgrepo-com.svg" alt="" width="20" height="20" />
+        </a>
+        <a href="https://linkedin.com/in/rovox" target="_blank" rel="noopener noreferrer" class="footer-link" aria-label="LinkedIn">
+          <img src="/icons/linkedin-logo-svgrepo-com.svg" alt="" width="20" height="20" />
+        </a>
+        <a href="https://wa.me/59162642144" target="_blank" rel="noopener noreferrer" class="footer-link" aria-label="WhatsApp">
+          <img src="/icons/whatsapp-logo-svgrepo-com.svg" alt="" width="20" height="20" />
+        </a>
+        <a href="mailto:varor.joseroberto@gmail.com" class="footer-link" aria-label="Email">
+          <img src="/icons/gmail-svgrepo-com.svg" alt="" width="20" height="20" />
+        </a>
       </nav>
 
       <p class="footer-copyright">
@@ -264,23 +265,33 @@ function linkAttrs(href: string) {
   }
 
   .footer-link {
-    font-family: var(--font-mono);
-    font-size: var(--fs-label);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    transition: color var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    transition: background var(--transition-fast);
   }
 
   .footer-link:hover {
-    color: var(--primary);
+    background: rgba(0, 242, 255, 0.1);
   }
 
   .footer-link:focus-visible {
     outline: 2px solid var(--primary-container);
     outline-offset: 4px;
     border-radius: 2px;
+  }
+
+  .footer-link img {
+    width: 20px;
+    height: 20px;
+    filter: grayscale(100%) brightness(0.7);
+    transition: filter 0.2s ease;
+  }
+
+  .footer-link:hover img {
+    filter: grayscale(0%) brightness(1);
   }
 
   .footer-copyright {

@@ -12,5 +12,13 @@ export default defineConfig({
     ssr: {
       noExternal: ['react', 'react-dom'],
     },
+    optimizeDeps: {
+      exclude: [
+        'astro/virtual-modules/transitions-router.js',
+        'astro/virtual-modules/transitions-types.js',
+        'astro/virtual-modules/transitions-events.js',
+        'astro/virtual-modules/transitions-swap-functions.js',
+      ],
+    },
   },
 });

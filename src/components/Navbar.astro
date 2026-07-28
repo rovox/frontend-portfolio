@@ -27,7 +27,7 @@ function isActive(href: string): boolean {
 
 <nav class="nav" id="main-nav" aria-label="Main navigation">
   <div class="nav-inner">
-    <a href="/" class="nav-logo" aria-label="Homepage">DEV_ARCHITECT</a>
+    <a href="/" class="nav-logo" aria-label="Homepage">ROVOX - DEV ARCHITECT</a>
 
     <div class="nav-links" role="list">
       {
@@ -60,7 +60,7 @@ function isActive(href: string): boolean {
   <!-- Mobile overlay -->
   <div class="nav-overlay" id="nav-overlay" aria-hidden="true" aria-label="Navigation menu">
     <div class="nav-overlay-header">
-      <a href="/" class="nav-overlay-logo" aria-label="Homepage">DEV_ARCHITECT</a>
+      <a href="/" class="nav-overlay-logo" aria-label="Homepage">ROVOX - DEV ARCHITECT</a>
       <button class="nav-overlay-close" id="nav-overlay-close" aria-label="Close navigation menu">
         <span aria-hidden="true">&times;</span>
       </button>
@@ -423,8 +423,8 @@ function isActive(href: string): boolean {
      ============================================== */
   .theme-toggle {
     background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
+    border: 1px solid var(--primary-container);
+    color: var(--primary-container);
     padding: 0.45rem;
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -436,9 +436,9 @@ function isActive(href: string): boolean {
     justify-content: center;
   }
   .theme-toggle:hover {
-    color: var(--primary-container);
-    border-color: var(--primary-container);
-    background: var(--surface);
+    color: var(--text);
+    border-color: var(--primary);
+    background: rgba(0, 242, 255, 0.1);
   }
 
   /* ==============================================

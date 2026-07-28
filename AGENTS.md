@@ -15,7 +15,7 @@ pnpm generate-types   # wrangler types -> worker-configuration.d.ts
 
 ## Critical Rules
 
-- **React islands require `client:only="react"`** (SSR crash in workerd — `ReactCurrentDispatcher.current` is null). Current islands: `AudioController`, `MagneticCursor`, `TideEffect`, `ThemeToggle`.
+- **React islands require `client:only="react"`** (SSR crash in workerd — `ReactCurrentDispatcher.current` is null). Current islands: `AudioController`, `TideEffect`, `ThemeToggle`, `ScrollProgressBar`, `ScrollInactivityHint`.
 - **Hash links use absolute paths** (`/#skills`) but **no `data-astro-reload`** — `data-astro-reload` forces full reloads, which re-trigger the splash screen. Instead, client-side scroll is handled by the `astro:page-load` listener in `Layout.astro` using Lenis (with a native `scrollIntoView` fallback) and a `sessionStorage` splash guard. **Exception**: Splash screen is a deliberate WCAG2.3.3 exception — it always shows on fresh load (no sessionStorage guard, no reduced-motion skip). Users bypass via Skip button or Escape key.
 - **GSAP: import from `../../utils/gsap-config` only** — never from `gsap` directly. This registers ScrollTrigger and sets `gsap.defaults({ ease: 'power3.out', duration: 0.8 })`.
 - **Reduced motion: use `../../utils/reduced-motion`** helper (`prefersReducedMotion()`). Guard all animations; use `gsap.set({ opacity: 1, y: 0 })` as fallback.
@@ -37,7 +37,9 @@ pnpm generate-types   # wrangler types -> worker-configuration.d.ts
 - **Diagnostics**: `src/utils/debug.ts` — `logLifecycle`/`mark`/`measure` are dev-only; `fail` always logs. No `console.log` in committed code.
 - **Lenis smooth scroll**: initialized via `defineModule('lenis', …)` in `Layout.astro`. Connected to GSAP ticker: `lenis.on('scroll', ScrollTrigger.update)`, `gsap.ticker.add(...)`, `gsap.ticker.lagSmoothing(0)`.
 - **Preloader lifecycle**: components that animate on load MUST check `window.__portfolioLoaderDone` first, then listen for `preloader:done` event. All ScrollTrigger instances must be killed on `astro:before-swap`.
-- **Effects components** (`src/components/effects/`): `ParallaxLayer.astro`, `RevealMask.astro`, `SplitText.astro` are Astro wrappers; `MagneticCursor.tsx` is a React island; `HorizontalScroll.tsx` exists but is unreferenced.
+- **Effects components** (`src/components/effects/`): `RevealMask.astro`, `SplitText.astro` are Astro wrappers; `ScrollProgressBar.tsx`, `ScrollInactivityHint.tsx` are React islands. Deleted as obsolete: `ParallaxLayer.astro`, `HorizontalScroll.tsx`, `MagneticCursor.tsx`, `SplashFluid.astro`, `Hero3D/SplashFluid.tsx`.
+- **Scroll-driven vs autonomous motion**: `prefers-reduced-motion` guards ONLY autonomous animations (entrance tweens, blink loops). Scroll-linked scrub effects (tide fade, terminal pin journey) MUST always initialize — they are user-controlled and required for visibility. Never wrap ScrollTrigger fade/pin logic in a reduced-motion early return.
+- **Terminal journey** (`HeroSection.astro`): GSAP pin at `center center` (pinSpacing: false), releases at `#skills top 65%`, horizontal drift to viewport center on ≥1040px, opacity fade scrub `#skills top 85% → 65%`. Do NOT wrap `.hero` in transformed wrappers (e.g. ParallaxLayer) — transformed ancestors break `position: fixed` pinning.
 - Astro config (`astro.config.mjs`): `vite.ssr.noExternal: ['react', 'react-dom']` required for workerd SSR edge case.
 - Prettier formatter: `.ts`, `.tsx`, `.astro`, `.json`, `.css`, `.md` (configured in `opencode.json`).
 
@@ -48,6 +50,13 @@ pnpm generate-types   # wrangler types -> worker-configuration.d.ts
 - External links (CV EN/ES) are centralized in `src/config.ts` — never hardcode Drive URLs in components.
 - `src/utils/cursor/cursor-system.ts` is an unused architecture scaffold (plugin registry) — do not instantiate until the cursor system feature is planned.
 - No external API dependencies. No `.env` files needed.
+
+## Scroll & Navigation Features
+
+- **Scroll Progress Bar**: `ScrollProgressBar.tsx` — fixed below navbar (70px), neon gradient with shimmer effect during scroll, 1s timeout to deactivate shimmer. Respects `prefers-reduced-motion`.
+- **Scroll Inactivity Hint**: `ScrollInactivityHint.tsx` — appears after 30s of inactivity, invites user to continue scrolling. Disappears on any interaction.
+- **TideEffect**: Bidirectional fade — water effect fades out on scroll down (40vh), reappears on scroll up. Scrub: 0.3 for responsive behavior.
+- **Hero Terminal Sticky**: Terminal moves from center to left on desktop (≥1040px) during scroll, fades out in last 20% of hero section. Shows "About Me" content.
 
 ## Deploy Target
 
