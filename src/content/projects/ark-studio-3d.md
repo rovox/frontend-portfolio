@@ -8,7 +8,8 @@ technologies:
   - GSAP
   - React
   - Vite
-githubUrl: https://github.com/rovox
+liveUrl: http://arkmusic.studio/
+preview: /previews/arkmusic3d.png
 category: web
 order: 1
 tags: [web]

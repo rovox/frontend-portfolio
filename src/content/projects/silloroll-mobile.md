@@ -6,7 +6,6 @@ technologies:
   - Expo
   - WhatsApp API
   - Git
-githubUrl: https://github.com/rovox
 category: mobile
 order: 6
 tags: [mobile]

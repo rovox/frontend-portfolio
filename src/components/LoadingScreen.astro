@@ -119,7 +119,7 @@
   }
 
   .terminal-window {
-    font-family: var(--font-mono);
+    font-family: var(--font-display), var(--font-mono);
     color: #F5F5F5;
     font-size: clamp(1.4rem, 4vw, 2.8rem);
     line-height: 1.6;
@@ -259,19 +259,22 @@
       onCleanup(function () { target.removeEventListener(type, fn, opts); });
     }
 
-    // ── Typewriter click sound (WebAudio, spec B2) ──
-    var _clickCtx = null, _clickGain = null;
+    // ── Typewriter click sound (best effort only; silent until a real gesture unlocks audio) ──
+    var _clickCtx = null, _clickGain = null, _clickAudioUnlocked = false;
+    function ensureClickCtx() {
+      if (_clickCtx || !_clickAudioUnlocked) return null;
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      _clickCtx = new AC();
+      _clickGain = _clickCtx.createGain();
+      _clickGain.gain.value = 0.06;
+      _clickGain.connect(_clickCtx.destination);
+      return _clickCtx;
+    }
     function typewriterClick() {
       try {
-        if (!_clickCtx) {
-          var AC = window.AudioContext || window.webkitAudioContext;
-          if (!AC) return;
-          _clickCtx = new AC();
-          _clickGain = _clickCtx.createGain();
-          _clickGain.gain.value = 0.06;
-          _clickGain.connect(_clickCtx.destination);
-        }
-        if (_clickCtx.state === 'suspended') return; // resumes on first gesture
+        if (!ensureClickCtx()) return;
+        if (_clickCtx.state === 'suspended') return;
         var now = _clickCtx.currentTime;
         var osc = _clickCtx.createOscillator();
         osc.type = 'square';
@@ -286,7 +289,13 @@
     function closeClickCtx() {
       if (_clickCtx) { try { _clickCtx.close(); } catch (e) {} _clickCtx = null; _clickGain = null; }
     }
-    function resumeClickCtx() { if (_clickCtx && _clickCtx.state === 'suspended') _clickCtx.resume(); }
+    function unlockClickCtx() {
+      _clickAudioUnlocked = true;
+      if (!ensureClickCtx()) return;
+      if (_clickCtx.state === 'suspended') {
+        _clickCtx.resume();
+      }
+    }
 
     // ── finish(): single exit path — idempotent ──
     var finished = false;
@@ -348,9 +357,9 @@
       window.scrollTo(0, scrollY);
     });
 
-    // AudioContext resume on first gesture
-    listen(window, 'pointerdown', resumeClickCtx);
-    listen(window, 'keydown', resumeClickCtx);
+    // Audio unlock only after a real user gesture; otherwise typing stays silent.
+    listen(window, 'pointerdown', unlockClickCtx);
+    listen(window, 'keydown', unlockClickCtx);
 
     // Watchdog — ALWAYS guarantees cleanup (spec J)
     var watchdog = setTimeout(function () { finish(State.FAILED); }, 12000);

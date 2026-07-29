@@ -1,5 +1,6 @@
 ---
 import ThemeToggle from './ThemeToggle.tsx';
+import LanguageToggle from './LanguageToggle.tsx';
 import { CV_VIEW_URL_EN } from '../config';
 
 const currentPath = Astro.url.pathname;
@@ -27,7 +28,7 @@ function isActive(href: string): boolean {
 
 <nav class="nav" id="main-nav" aria-label="Main navigation">
   <div class="nav-inner">
-    <a href="/" class="nav-logo" aria-label="Homepage">ROVOX - DEV ARCHITECT</a>
+    <a href="/" class="nav-logo" aria-label="Homepage">@rovox - Dev Architect</a>
 
     <div class="nav-links" role="list">
       {
@@ -43,6 +44,7 @@ function isActive(href: string): boolean {
         ))
       }
       <a href={CV_VIEW_URL_EN} target="_blank" rel="noopener noreferrer" class="btn btn-primary nav-resume">Resume</a>
+      <LanguageToggle client:only="react" />
       <ThemeToggle client:only="react" />
     </div>
 
@@ -77,6 +79,7 @@ function isActive(href: string): boolean {
         ))
       }
       <a href={CV_VIEW_URL_EN} target="_blank" rel="noopener noreferrer" class="btn btn-primary nav-resume-mobile">Resume</a>
+      <LanguageToggle client:only="react" />
       <ThemeToggle client:only="react" />
     </nav>
   </div>
@@ -214,14 +217,11 @@ function isActive(href: string): boolean {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgba(21, 29, 30, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
-  }
-
-  [data-theme="light"] .nav {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(13, 21, 21, 0.78);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-bottom: 1px solid rgba(0, 242, 255, 0.14);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
   }
 
   .nav-inner {
@@ -232,6 +232,7 @@ function isActive(href: string): boolean {
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
+    position: relative;
   }
 
   /* Logo */
@@ -256,24 +257,41 @@ function isActive(href: string): boolean {
     align-items: center;
     gap: 1.5rem;
     list-style: none;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid rgba(0, 242, 255, 0.08);
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.02);
   }
 
   .nav-link {
     display: inline-block;
-    font-family: var(--font-mono);
+    font-family: var(--font-accent);
     font-size: var(--fs-label);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     color: var(--muted);
     text-decoration: none;
     transition: color var(--transition-fast);
     white-space: nowrap;
     padding: 0.25rem 0;
+    position: relative;
   }
 
   .nav-link:hover {
     color: var(--primary-container);
+  }
+
+  .nav-link:hover::after,
+  .nav-link--active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.1rem;
+    height: 2px;
+    border-radius: var(--radius-full);
+    background: currentColor;
+    opacity: 0.8;
   }
 
   /* Active link — leading `>` in monospaced font */
@@ -290,7 +308,10 @@ function isActive(href: string): boolean {
   .nav-resume {
     margin-left: 0.5rem;
     font-size: var(--fs-label);
+    font-family: var(--font-accent);
+    font-weight: 600;
     padding: 0.45rem 1rem;
+    box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.04), 0 8px 18px rgba(0, 0, 0, 0.08);
   }
 
   /* ==============================================
@@ -299,20 +320,27 @@ function isActive(href: string): boolean {
   .nav-toggle {
     display: none;
     background: none;
-    border: none;
+    border: 1px solid rgba(0, 242, 255, 0.18);
+    border-radius: var(--radius-md);
     cursor: pointer;
-    padding: 0.25rem;
+    padding: 0.35rem 0.45rem;
     color: var(--muted);
-    transition: color var(--transition-fast);
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    background: rgba(255, 255, 255, 0.02);
   }
 
   .nav-toggle:hover {
-    color: var(--primary-container);
+    background: #ffffff;
+    color: #0d1515;
+    border-color: #ffffff;
   }
 
   .nav-toggle-icon {
     font-size: 1.5rem;
     line-height: 1;
+    display: inline-block;
+    width: 1.5rem;
+    text-align: center;
   }
 
   /* ==============================================
@@ -323,19 +351,15 @@ function isActive(href: string): boolean {
     position: fixed;
     inset: 0;
     z-index: 2000;
-    background: rgba(13, 21, 21, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(13, 21, 21, 0.96);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
     flex-direction: column;
     align-items: center;
     justify-content: center;
     opacity: 0;
     transform: translateY(-10px);
     transition: opacity var(--transition-normal), transform var(--transition-normal);
-  }
-
-  [data-theme="light"] .nav-overlay {
-    background: rgba(250, 246, 241, 0.95);
   }
 
   .nav-overlay--open {
@@ -370,17 +394,21 @@ function isActive(href: string): boolean {
 
   .nav-overlay-close {
     background: none;
-    border: none;
+    border: 1px solid rgba(0, 242, 255, 0.12);
+    border-radius: var(--radius-md);
     cursor: pointer;
-    padding: 0.25rem 0.5rem;
+    padding: 0.4rem 0.7rem;
     color: var(--muted);
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1;
-    transition: color var(--transition-fast);
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    background: rgba(255, 255, 255, 0.02);
   }
 
   .nav-overlay-close:hover {
-    color: var(--primary-container);
+    background: #ffffff;
+    color: #0d1515;
+    border-color: #ffffff;
   }
 
   .nav-overlay-content {
@@ -397,6 +425,7 @@ function isActive(href: string): boolean {
     color: var(--muted);
     text-decoration: none;
     transition: color var(--transition-fast);
+    padding: 0.75rem 0.5rem;
   }
 
   .nav-overlay-link:hover {
@@ -419,26 +448,74 @@ function isActive(href: string): boolean {
   }
 
   /* ==============================================
-     Theme toggle button
+     Theme toggle button — circular, icon-driven
      ============================================== */
   .theme-toggle {
-    background: none;
-    border: 1px solid var(--primary-container);
-    color: var(--primary-container);
-    padding: 0.45rem;
-    border-radius: var(--radius-md);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 242, 255, 0.08);
     cursor: pointer;
-    transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
-    font-size: 1.1rem;
-    line-height: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
   }
-  .theme-toggle:hover {
-    color: var(--text);
-    border-color: var(--primary);
-    background: rgba(0, 242, 255, 0.1);
+  [data-theme="dark"] .theme-toggle {
+    background: #0d1515;
+    color: #FFD700;
+    border-color: rgba(255, 215, 0, 0.15);
+  }
+  [data-theme="dark"] .theme-toggle:hover {
+    border-color: #FFD700;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.2);
+  }
+  [data-theme="light"] .theme-toggle {
+    background: #ffffff;
+    color: #1a1a2e;
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+  [data-theme="light"] .theme-toggle:hover {
+    border-color: #1a1a2e;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* ==============================================
+     Language toggle button
+     ============================================== */
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    color: var(--muted);
+    line-height: 1;
+    transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+  }
+
+  .lang-toggle:hover {
+    border-color: var(--primary-container);
+    color: var(--primary);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .lang-toggle-flag {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .lang-toggle-label {
+    font-weight: 700;
+    letter-spacing: 0.04em;
   }
 
   /* ==============================================

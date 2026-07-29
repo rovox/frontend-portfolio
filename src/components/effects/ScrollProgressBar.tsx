@@ -52,12 +52,11 @@ export default function ScrollProgressBar() {
         left: 0,
         width: `${progress}%`,
         height: '3px',
-        background:
-          'linear-gradient(90deg, var(--primary-container), var(--primary), var(--primary-container))',
+        background: 'linear-gradient(90deg, #00f2ff, #e1fdff, #00f2ff)',
         zIndex: 1001,
-        transition: 'width 0.1s ease-out',
+        transition: 'width 0.1s ease-out, box-shadow 0.4s ease',
         boxShadow: !reducedMotion.current && isScrolling
-          ? `0 0 10px var(--primary-container), 0 0 20px var(--primary-container), 0 0 40px var(--primary-container)`
+          ? '0 0 10px #00f2ff, 0 0 20px #00f2ff, 0 0 40px #00f2ff'
           : 'none',
         animation: !reducedMotion.current && isScrolling ? 'shimmer 1.5s infinite' : 'none',
       }}

@@ -1,10 +1,9 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import type { Mesh, ShaderMaterial } from 'three';
 import { DoubleSide, Vector2 } from 'three';
 import { createWaterUniforms, vertexShader, fragmentShader } from './WaterShader';
 import { ScrollTrigger } from '../../utils/gsap-config';
-import { logLifecycle } from '../../utils/debug';
 
 interface WaterPlaneProps {
   lowPower?: boolean;
@@ -81,24 +80,19 @@ function WaterPlane({ lowPower = false }: WaterPlaneProps) {
 
 export default function TideEffect() {
   const [lowPower, setLowPower] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const visibleRef = useRef(true);
+  const [hidden, setHidden] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
     setLowPower(mql.matches);
-
     const handleChange = (e: MediaQueryListEvent) => setLowPower(e.matches);
     mql.addEventListener('change', handleChange);
     return () => mql.removeEventListener('change', handleChange);
   }, []);
 
-  // ScrollTrigger: bidirectional fade + lift, tied directly to scroll.
-  // This is a scroll-DRIVEN visibility mechanism (user-controlled), NOT an
-  // autonomous animation — it must run even under prefers-reduced-motion,
-  // otherwise the waves would stay visible forever.
-  // lowPower only reduces geometry/dpr, never disables this effect.
+  // Scroll-driven: waves grow and fade as user scrolls through hero.
+  // Runs even under prefers-reduced-motion (user-controlled, not autonomous).
   useEffect(() => {
     if (!wrapperRef.current) return;
 
@@ -110,27 +104,17 @@ export default function TideEffect() {
         const { progress } = self;
         const el = wrapperRef.current!;
 
-        // Progressive fade + lift — tied to hero scroll
+        // Waves grow larger while fading out — "submerging" effect
         el.style.opacity = String(1 - progress);
-        el.style.transform = `translateY(${-10 * progress}vh)`;
-
-        // Once past the hero section, unmount the 3D canvas entirely —
-        // stops all GPU/shader work, not just visual hiding.
-        const show = progress < 0.99;
-        el.style.visibility = show ? 'visible' : 'hidden';
-        if (show !== visibleRef.current) {
-          visibleRef.current = show;
-          setIsVisible(show);
-          logLifecycle(
-            'tide',
-            show ? 'waves visible — canvas remounted' : 'waves hidden — canvas unmounted, GPU stopped'
-          );
-        }
+        el.style.transform = `scale(${1 + progress * 0.6})`;
+        el.style.transformOrigin = 'center bottom';
+        el.style.visibility = progress < 0.99 ? 'visible' : 'hidden';
+        setHidden(progress >= 0.99);
       },
     });
 
     return () => st.kill();
-  }, [lowPower]);
+  }, []);
 
   return (
     <div
@@ -154,10 +138,10 @@ export default function TideEffect() {
           bottom: 0,
           left: 0,
           width: '100%',
-          height: '30vh',
+          height: '20vh',
         }}
       >
-        {isVisible && (
+        {!hidden && (
           <Canvas
             frameloop="always"
             camera={{ position: [0, 2.5, 4], fov: 50 }}

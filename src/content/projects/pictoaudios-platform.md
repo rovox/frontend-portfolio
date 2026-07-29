@@ -6,7 +6,7 @@ technologies:
   - REST API
   - Accessibility
   - UI Engineering
-githubUrl: https://github.com/rovox
+githubUrl: https://github.com/rovox/picto-audios
 category: design
 order: 5
 tags: [design]

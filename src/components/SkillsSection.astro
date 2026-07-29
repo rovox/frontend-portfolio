@@ -25,19 +25,9 @@ const iconGlyphs: Record<string, string> = {
 ---
 
 <SectionWrapper id="skills" title="&lt;Skills /&gt;" note="// Technical expertise and creative capabilities">
-  <div class="filter-chips" data-filter-section="skills">
-    <button class="filter-chip is-active" data-filter="all">All</button>
-    <button class="filter-chip" data-filter="core">Core</button>
-    <button class="filter-chip" data-filter="blockchain">Blockchain</button>
-    <button class="filter-chip" data-filter="3d">3D</button>
-    <button class="filter-chip" data-filter="mobile">Mobile</button>
-    <button class="filter-chip" data-filter="devops">DevOps</button>
-    <button class="filter-chip" data-filter="ai">AI</button>
-  </div>
-
   <div class="skills-grid">
     {rendered.map((skill) => (
-      <div class="filter-item skill-card glass-card card-glow" data-tags={skill.data.tags.join(' ')}>
+      <div class="skill-card glass-card card-glow">
         <div class="skill-header">
           <span class="skill-icon" aria-hidden="true">{iconGlyphs[skill.data.icon] || '\u25B8'}</span>
           <h3 class="skill-title">{skill.data.title}</h3>

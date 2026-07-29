@@ -31,11 +31,19 @@ const { title } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content="Jose Roberto Vargas Orellana — Software Developer, Data Scientist, Full Stack Web/Mobile/Desktop. Immersive portfolio." />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Jersey+10+Charted&display=swap" rel="stylesheet" />
+
     <script is:inline>
       (function() {
+        // Theme
         const stored = localStorage.getItem('theme');
         const theme = stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', theme);
+        // Language
+        const lang = localStorage.getItem('lang') || 'en';
+        document.documentElement.setAttribute('data-lang', lang);
       })();
     </script>
     <title>{title}</title>
@@ -149,6 +157,13 @@ const { title } = Astro.props;
             const show = filter === 'all' || tags.includes(filter);
             item.classList.toggle('is-hidden', !show);
           });
+          // Scroll filtered section to top so matching cards are visible
+          if (filter !== 'all') {
+            requestAnimationFrame(() => {
+              const sectionEl = section.closest('section') as HTMLElement | null;
+              sectionEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+          }
         };
 
         chips.forEach((chip) => {
@@ -163,7 +178,7 @@ const { title } = Astro.props;
       }
 
       function initAllFilters() {
-        const cleanups = ['skills', 'experiences', 'projects']
+        const cleanups = ['experiences', 'projects']
           .map(initFilterSection)
           .filter(Boolean) as (() => void)[];
 
@@ -230,6 +245,8 @@ const { title } = Astro.props;
     /* Typography — DESIGN.md spec */
     --font-body: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+    --font-display: 'Jersey 10 Charted', cursive;
+    --font-accent: 'IBM Plex Sans', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
     --fs-display: clamp(2.5rem, 8vw, 3rem);
     --fs-headline-lg: clamp(1.75rem, 5vw, 2rem);
     --fs-headline-md: clamp(1.35rem, 3vw, 1.5rem);
@@ -337,14 +354,14 @@ const { title } = Astro.props;
   .section-title {
     margin: 0 0 0.35rem;
     font-size: var(--fs-headline-lg);
-    font-family: var(--font-mono);
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-weight: 400;
   }
 
   .section-note {
     margin: 0 0 2rem;
     color: var(--muted);
-    font-family: var(--font-mono);
+    font-family: var(--font-display);
     font-size: var(--fs-code);
   }
 
@@ -371,14 +388,14 @@ const { title } = Astro.props;
     padding: 0.7rem 1.1rem;
     border-radius: var(--radius-md);
     font-weight: 600;
-    font-family: var(--font-mono);
+    font-family: var(--font-accent);
     cursor: pointer;
     transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
     text-decoration: none;
   }
 
   .btn-primary {
-    background: transparent;
+    background: rgba(0, 242, 255, 0.06);
     color: var(--primary-container);
     border: 1px solid var(--primary-container);
   }
@@ -478,8 +495,9 @@ const { title } = Astro.props;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--muted);
-    font-family: var(--font-mono);
+    font-family: var(--font-accent);
     font-size: var(--fs-label);
+    font-weight: 600;
     cursor: pointer;
     transition: all var(--transition-fast);
   }
@@ -504,23 +522,21 @@ const { title } = Astro.props;
   }
 
   .filter-item.is-hidden {
-    opacity: 0 !important;
-    transform: scale(0.96) !important;
-    pointer-events: none;
+    display: none !important;
   }
 
   /* ─── Dawn Protocol — Light theme overrides ─── */
   :root[data-theme="light"] {
     --bg: #faf6f1;
-    --surface: rgba(255, 255, 255, 0.65);
-    --surface-high: #f0ebe5;
-    --surface-container: #f5f0eb;
-    --surface-container-low: #ede8e3;
-    --surface-container-lowest: #e5e0db;
+    --surface: rgba(255, 255, 255, 0.82);
+    --surface-high: #ebe5de;
+    --surface-container: #f8f3ee;
+    --surface-container-low: #f0eae4;
+    --surface-container-lowest: #e7e0d8;
     --surface-bright: #ffffff;
-    --surface-dim: #e8e3de;
-    --text: #1e293b;
-    --muted: #5c6d80;
+    --surface-dim: #ebe4dc;
+    --text: #172033;
+    --muted: #516274;
     --primary: #0c4a6e;
     --primary-container: #0e7490;
     --on-primary: #ffffff;
@@ -528,9 +544,9 @@ const { title } = Astro.props;
     --secondary: #475569;
     --on-secondary: #f8fafc;
     --secondary-container: #e2e8f0;
-    --outline: #94a3b8;
-    --outline-variant: #cbd5e1;
-    --border: rgba(0, 0, 0, 0.08);
+    --outline: #7b8a9e;
+    --outline-variant: #c5d0db;
+    --border: rgba(12, 74, 110, 0.14);
     --error: #b91c1c;
     --surface-tint: #00a8b5;
 
@@ -541,7 +557,7 @@ const { title } = Astro.props;
   /* Light mode elevated cards (no glassmorphism) */
   :root[data-theme="light"] .glass-card {
     background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(12, 74, 110, 0.12);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 4px 24px rgba(0, 0, 0, 0.04);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -561,13 +577,129 @@ const { title } = Astro.props;
     color: var(--primary);
   }
   :root[data-theme="light"] .btn-primary:hover {
-    color: var(--primary);
-    background: rgba(14, 116, 144, 0.08);
+    color: var(--on-primary);
+    background: rgba(14, 116, 144, 0.14);
   }
 
   :root[data-theme="light"] .card-glow:hover {
     background: #ffffff;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.06);
+  }
+
+  :root[data-theme="light"] .btn-ghost:hover {
+    color: var(--primary);
+    border-color: var(--outline-variant);
+    background: rgba(14, 116, 144, 0.08);
+  }
+
+  /* ─── Light mode: Navbar always stays dark ─── */
+  :root[data-theme="light"] .nav {
+    background: rgba(13, 21, 21, 0.78);
+    border-bottom: 1px solid rgba(0, 242, 255, 0.14);
+  }
+
+  :root[data-theme="light"] .nav-logo {
+    color: #e1fdff;
+  }
+
+  :root[data-theme="light"] .nav-links {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(0, 242, 255, 0.08);
+  }
+
+  :root[data-theme="light"] .nav-link {
+    color: #b9cacb;
+  }
+
+  :root[data-theme="light"] .nav-link:hover {
+    color: #00f2ff;
+  }
+
+  :root[data-theme="light"] .nav-link--active {
+    color: #e1fdff;
+  }
+
+  :root[data-theme="light"] .nav-link--active::before {
+    color: #00f2ff;
+  }
+
+  :root[data-theme="light"] .nav-resume {
+    color: #00f2ff;
+    border-color: #00f2ff;
+  }
+
+  :root[data-theme="light"] .nav-resume:hover {
+    color: #dce4e4;
+    background: rgba(0, 242, 255, 0.1);
+  }
+
+  :root[data-theme="light"] .nav-overlay {
+    background: rgba(13, 21, 21, 0.96);
+  }
+
+  :root[data-theme="light"] .nav-overlay-logo {
+    color: #e1fdff;
+  }
+
+  :root[data-theme="light"] .nav-overlay-link {
+    color: #b9cacb;
+  }
+
+  :root[data-theme="light"] .nav-overlay-link:hover {
+    color: #00f2ff;
+  }
+
+  :root[data-theme="light"] .nav-overlay-link--active {
+    color: #e1fdff;
+  }
+
+  :root[data-theme="light"] .nav-overlay-link--active::before {
+    color: #00f2ff;
+  }
+
+  :root[data-theme="light"] .nav-resume-mobile {
+    color: #00f2ff;
+    border-color: #00f2ff;
+  }
+
+  :root[data-theme="light"] .nav-resume-mobile:hover {
+    color: #dce4e4;
+    background: rgba(0, 242, 255, 0.1);
+  }
+
+  :root[data-theme="light"] .nav-toggle {
+    color: #b9cacb;
+    border-color: rgba(0, 242, 255, 0.18);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  :root[data-theme="light"] .nav-toggle:hover {
+    background: #ffffff;
+    color: #0d1515;
+    border-color: #ffffff;
+  }
+
+  :root[data-theme="light"] .nav-overlay-close {
+    color: #b9cacb;
+    border-color: rgba(0, 242, 255, 0.12);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  :root[data-theme="light"] .nav-overlay-close:hover {
+    background: #ffffff;
+    color: #0d1515;
+    border-color: #ffffff;
+  }
+
+  :root[data-theme="light"] .lang-toggle {
+    color: #b9cacb;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  :root[data-theme="light"] .lang-toggle:hover {
+    color: #00f2ff;
+    border-color: #00f2ff;
+    background: rgba(255, 255, 255, 0.04);
   }
 
   /* Light mode: terminal titlebar */
@@ -598,10 +730,7 @@ const { title } = Astro.props;
     }
     50% {
       opacity: 0.7;
-      box-shadow:
-        0 0 15px var(--primary-container),
-        0 0 30px var(--primary-container),
-        0 0 60px var(--primary-container);
+      box-shadow: 0 0 15px #00f2ff, 0 0 30px #00f2ff, 0 0 60px #00f2ff;
     }
     100% {
       opacity: 1;

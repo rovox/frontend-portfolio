@@ -7,8 +7,9 @@ technologies:
   - Docker
   - Web3.js
   - React
-githubUrl: https://github.com/rovox
+githubUrl: https://github.com/rovox/Evolve-Taller
+blogUrl: https://medium.com/cumulo-pro/evolve-2691e56c84f2
 category: blockchain
-order: 2
+order: 3
 tags: [blockchain]
 ---
