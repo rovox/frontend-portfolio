@@ -28,27 +28,16 @@ education.sort((a, b) => a.data.order - b.data.order);
 
 const leadership = await getCollection('leadership');
 leadership.sort((a, b) => a.data.order - b.data.order);
-
-// --- Social Links ---
-const socialLinks = [
-  { label: 'GitHub', href: 'https://github.com/rovox' },
-  {
-    label: 'LinkedIn',
-    href: 'https://www.linkedin.com/in/jroberto-vargas-orellana/',
-  },
-  { label: 'WhatsApp', href: 'https://wa.me/59162642144' },
-  { label: 'Gmail', href: 'mailto:varor.joseroberto@gmail.com' },
-];
 ---
 
 <Layout title="Jose Roberto Vargas Orellana | Portfolio">
   <LazyTideEffect client:only="react" />
   <HeroSection />
-  <SkillsSection items={skills} />
   <ExperienceSection items={experiences} />
   <ProjectsSection items={projects} />
+  <SkillsSection items={skills} />
   <EducationSection items={education} />
   <LeadershipSection items={leadership} />
   <!-- <LatestPosts /> -->
-  <ContactSection socialLinks={socialLinks} />
+  <ContactSection />
 </Layout>

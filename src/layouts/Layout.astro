@@ -41,9 +41,6 @@ const { title } = Astro.props;
         const stored = localStorage.getItem('theme');
         const theme = stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', theme);
-        // Language
-        const lang = localStorage.getItem('lang') || 'en';
-        document.documentElement.setAttribute('data-lang', lang);
       })();
     </script>
     <title>{title}</title>
@@ -356,12 +353,14 @@ const { title } = Astro.props;
     font-size: var(--fs-headline-lg);
     font-family: var(--font-display);
     font-weight: 400;
+    color: var(--primary);
+    letter-spacing: -0.01em;
   }
 
   .section-note {
     margin: 0 0 2rem;
-    color: var(--muted);
-    font-family: var(--font-display);
+    color: var(--primary-container);
+    font-family: var(--font-mono);
     font-size: var(--fs-code);
   }
 
@@ -691,17 +690,6 @@ const { title } = Astro.props;
     border-color: #ffffff;
   }
 
-  :root[data-theme="light"] .lang-toggle {
-    color: #b9cacb;
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  :root[data-theme="light"] .lang-toggle:hover {
-    color: #00f2ff;
-    border-color: #00f2ff;
-    background: rgba(255, 255, 255, 0.04);
-  }
-
   /* Light mode: terminal titlebar */
   :root[data-theme="light"] .terminal-titlebar {
     background: rgba(0, 0, 0, 0.05);
@@ -719,7 +707,7 @@ const { title } = Astro.props;
     html *,
     html *::before,
     html *::after {
-      transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease;
+      transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
     }
   }
 

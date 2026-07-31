@@ -41,51 +41,54 @@ const iconGlyphs: Record<string, string> = {
 </SectionWrapper>
 
 <script>
-  import { gsap, ScrollTrigger } from '../utils/gsap-config';
-  import { prefersReducedMotion } from '../utils/reduced-motion';
+import { defineModule } from '../utils/lifecycle';
+import { gsap, ScrollTrigger } from '../utils/gsap-config';
+import { prefersReducedMotion } from '../utils/reduced-motion';
 
-  function initAnimations() {
-    if (prefersReducedMotion()) {
-      gsap.set('.skill-card', { opacity: 1, y: 0 });
-      return;
-    }
-
+  defineModule('skills', () => {
     const triggers: ScrollTrigger[] = [];
 
-    const tween = gsap.fromTo(
-      '.skill-card',
-      { opacity: 0, y: 30 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '#skills',
-          start: 'top 75%',
-          once: true,
-        },
+    function init() {
+      if (prefersReducedMotion()) {
+        gsap.set('.skill-card', { opacity: 1, y: 0 });
+        return;
       }
-    );
 
-    if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
+      const tween = gsap.fromTo(
+        '.skill-card',
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#skills',
+            start: 'top 75%',
+            once: true,
+          },
+        }
+      );
 
-    document.addEventListener(
-      'astro:before-swap',
-      () => {
-        triggers.forEach((t) => t.kill());
-        triggers.length = 0;
-      },
-      { once: true }
-    );
-  }
+      if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
+    }
 
-  if ((window as any).__portfolioLoaderDone) {
-    initAnimations();
-  } else {
-    window.addEventListener('preloader:done', initAnimations, { once: true });
-  }
+    if ((window as any).__portfolioLoaderDone) {
+      init();
+    } else {
+      const handler = () => {
+        init();
+        requestAnimationFrame(() => ScrollTrigger.refresh());
+      };
+      window.addEventListener('preloader:done', handler, { once: true });
+    }
+
+    return () => {
+      triggers.forEach((t) => t.kill());
+      triggers.length = 0;
+    };
+  });
 </script>
 
 <style>
@@ -97,8 +100,7 @@ const iconGlyphs: Record<string, string> = {
 
   .skill-card {
     padding: 1.5rem;
-    opacity: 0;
-    transform: translateY(30px);
+    opacity: 1;
   }
 
   .skill-header {

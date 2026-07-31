@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import type { Mesh, ShaderMaterial } from 'three';
+import type { Mesh, ShaderMaterial, WebGLRenderer } from 'three';
 import { DoubleSide, Vector2 } from 'three';
 import { createWaterUniforms, vertexShader, fragmentShader } from './WaterShader';
 import { ScrollTrigger } from '../../utils/gsap-config';
@@ -50,7 +50,7 @@ function WaterPlane({ lowPower = false }: WaterPlaneProps) {
   useFrame(() => {
     if (!meshRef.current) return;
     const material = meshRef.current.material as ShaderMaterial;
-    // Use performace.now() to avoid deprecated THREE.Clock
+    // Use performance.now() to avoid deprecated THREE.Clock
     material.uniforms.uTime.value = performance.now() * 0.001 - startTime.current;
     const target = mouseRef.current;
     const current = material.uniforms.uMouse.value as Vector2;
@@ -81,7 +81,9 @@ function WaterPlane({ lowPower = false }: WaterPlaneProps) {
 export default function TideEffect() {
   const [lowPower, setLowPower] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [contextLost, setContextLost] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const stRef = useRef<ScrollTrigger | null>(null);
 
   useEffect(() => {
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -104,6 +106,7 @@ export default function TideEffect() {
         const { progress } = self;
         const el = wrapperRef.current!;
 
+        // Firefox emits "async scrolling disabled" warning here — expected, no visible jank observed.
         // Waves grow larger while fading out — "submerging" effect
         el.style.opacity = String(1 - progress);
         el.style.transform = `scale(${1 + progress * 0.6})`;
@@ -113,8 +116,42 @@ export default function TideEffect() {
       },
     });
 
-    return () => st.kill();
+    stRef.current = st;
+
+    return () => {
+      st.kill();
+      stRef.current = null;
+    };
   }, []);
+
+  // WebGL context-loss handlers
+  const handleContextLost = useCallback((e: Event) => {
+    e.preventDefault();
+    setContextLost(true);
+    // Kill the ScrollTrigger since canvas is gone
+    stRef.current?.kill();
+    stRef.current = null;
+    setHidden(true);
+  }, []);
+
+  const handleContextRestored = useCallback(() => {
+    setContextLost(false);
+    setHidden(false);
+  }, []);
+
+  const onCanvasCreated = useCallback(
+    ({ gl }: { gl: WebGLRenderer }) => {
+      gl.domElement.addEventListener('webglcontextlost', handleContextLost);
+      gl.domElement.addEventListener('webglcontextrestored', handleContextRestored);
+    },
+    [handleContextLost, handleContextRestored],
+  );
+
+  // Cleanup context-lost listeners if canvas remounts
+  useEffect(() => {
+    // No direct DOM access here — listeners are cleaned up by React unmount
+    // and re-attached on next Canvas mount via onCreated.
+  }, [contextLost]);
 
   return (
     <div
@@ -132,6 +169,14 @@ export default function TideEffect() {
         opacity: 1,
       }}
     >
+      {contextLost && (
+        <div
+          aria-live="polite"
+          className="sr-only"
+        >
+          3D visualization temporarily unavailable.
+        </div>
+      )}
       <div
         style={{
           position: 'absolute',
@@ -141,20 +186,29 @@ export default function TideEffect() {
           height: '20vh',
         }}
       >
-        {!hidden && (
+        {contextLost ? (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              background: 'linear-gradient(180deg, transparent 0%, rgba(0,45,95,0.3) 100%)',
+            }}
+          />
+        ) : !hidden ? (
           <Canvas
             frameloop="always"
             camera={{ position: [0, 2.5, 4], fov: 50 }}
             gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
             dpr={lowPower ? [1, 1] : [1, 1.5]}
             style={{ background: 'transparent' }}
+            onCreated={onCanvasCreated}
           >
             <ambientLight intensity={0.4} />
             <directionalLight position={[5, 8, 3]} intensity={0.8} color="#aaddff" />
             <pointLight position={[-3, 2, -2]} intensity={0.3} color="#2de2e6" />
             <WaterPlane lowPower={lowPower} />
           </Canvas>
-        )}
+        ) : null}
       </div>
     </div>
   );

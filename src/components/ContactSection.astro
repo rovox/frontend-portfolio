@@ -1,28 +1,5 @@
 ---
-interface SocialLink {
-  label: string;
-  href: string;
-}
-
-interface Props {
-  socialLinks: SocialLink[];
-}
-
-const { socialLinks } = Astro.props;
-
-const gmailLink = socialLinks.find(
-  (l) => l.label.toLowerCase() === 'gmail' || l.label.toLowerCase() === 'email',
-);
-const whatsappLink = socialLinks.find(
-  (l) => l.label.toLowerCase() === 'whatsapp',
-);
-
-function linkAttrs(href: string) {
-  if (href.startsWith('http')) {
-    return { target: '_blank', rel: 'noopener noreferrer' };
-  }
-  return {};
-}
+import { FORMSPREE_ENDPOINT, GITHUB_URL, LINKEDIN_URL, MEDIUM_URL } from '../config';
 ---
 
 <section id="contact" class="section contact-section">
@@ -38,44 +15,71 @@ function linkAttrs(href: string) {
         and select freelance opportunities.
       </p>
 
-      <div class="cta-buttons">
-        {
-          gmailLink && (
-            <a
-              href={gmailLink.href}
-              class="btn btn-primary cta-btn"
-              {...linkAttrs(gmailLink.href)}
-            >
-                Gmail
-            </a>
-          )
-        }
-        {
-          whatsappLink && (
-            <a
-              href={whatsappLink.href}
-              class="btn btn-primary cta-btn"
-              {...linkAttrs(whatsappLink.href)}
-            >
-              WhatsApp
-            </a>
-          )
-        }
-      </div>
+      <!-- Formspree contact form -->
+      <form
+        class="contact-form"
+        action={FORMSPREE_ENDPOINT}
+        method="POST"
+      >
+        <div class="form-field">
+          <label for="contact-name">Name</label>
+          <input type="text" id="contact-name" name="name" autocomplete="name" />
+        </div>
+
+        <div class="form-field">
+          <label for="contact-email">
+            Email <span class="required-mark" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="email"
+            id="contact-email"
+            name="email"
+            required
+            autocomplete="email"
+            aria-required="true"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="contact-message">
+            Message <span class="required-mark" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            id="contact-message"
+            name="message"
+            required
+            rows="4"
+            aria-required="true"
+          ></textarea>
+        </div>
+
+        <!-- Honeypot -->
+        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
+        <input type="hidden" name="_next" value="/?submitted=1#contact" />
+
+        <p class="form-privacy">
+          Your data is sent securely via Formspree. No tracking, no analytics.
+        </p>
+
+        <button type="submit" class="btn btn-primary contact-submit">
+          Send message
+        </button>
+      </form>
+
+      <p class="form-success" hidden>
+        ✓ Message sent. I'll get back to you soon.
+      </p>
 
       <!-- Social Links inside CTA card -->
       <nav class="cta-socials" aria-label="Social links">
-        <a href="https://github.com/rovox" target="_blank" rel="noopener noreferrer" class="cta-social-link" aria-label="GitHub">
+        <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" class="cta-social-link" aria-label="GitHub">
           <img src="/icons/github-svgrepo-com.svg" alt="" width="24" height="24" />
         </a>
-        <a href="https://linkedin.com/in/rovox" target="_blank" rel="noopener noreferrer" class="cta-social-link" aria-label="LinkedIn">
+        <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" class="cta-social-link" aria-label="LinkedIn">
           <img src="/icons/linkedin-1-svgrepo-com.svg" alt="" width="24" height="24" />
         </a>
-        <a href="https://medium.com/@varor.joseroberto" target="_blank" rel="noopener noreferrer" class="cta-social-link" aria-label="Medium">
+        <a href={MEDIUM_URL} target="_blank" rel="noopener noreferrer" class="cta-social-link" aria-label="Medium">
           <img src="/icons/medium-svgrepo-com.svg" alt="" width="24" height="24" />
-        </a>
-        <a href="mailto:varor.joseroberto@gmail.com" class="cta-social-link" aria-label="Email">
-          <img src="/icons/gmail-svgrepo-com.svg" alt="" width="24" height="24" />
         </a>
       </nav>
 
@@ -86,6 +90,20 @@ function linkAttrs(href: string) {
     </div>
   </div>
 </section>
+
+<!-- Form success detection script -->
+<script is:inline>
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('submitted') === '1') {
+      var banner = document.querySelector('.form-success');
+      if (banner) banner.removeAttribute('hidden');
+      var form = document.querySelector('.contact-form');
+      if (form) form.style.display = 'none';
+      history.replaceState({}, '', window.location.pathname + window.location.hash);
+    }
+  })();
+</script>
 
 <script>
   import { defineModule } from '../utils/lifecycle';
@@ -99,7 +117,7 @@ function linkAttrs(href: string) {
     function initAnimations() {
       if (prefersReducedMotion()) {
         gsap.set(
-          ['.cta-title', '.cta-desc', '.cta-btn'],
+          ['.cta-title', '.cta-desc', '.contact-form'],
           { opacity: 1, y: 0, scale: 1 },
         );
         return;
@@ -127,16 +145,14 @@ function linkAttrs(href: string) {
           '-=0.35',
         )
         .fromTo(
-          '.cta-btn',
-          { opacity: 0, scale: 0.85 },
+          '.contact-form',
+          { opacity: 0, y: 20 },
           {
             opacity: 1,
-            scale: 1,
+            y: 0,
             duration: 0.5,
-            stagger: 0.1,
-            ease: 'back.out(1.4)',
           },
-          '-=0.2',
+          '-=0.15',
         );
     }
 
@@ -171,28 +187,28 @@ function linkAttrs(href: string) {
   /* ── CTA Card ── */
   .cta-card {
     width: 100%;
-    max-width: 680px;
-    padding: 3rem 1.5rem;
+    max-width: 100%;
+    padding: 1.75rem 1.25rem;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.25rem;
+    gap: 0.85rem;
   }
 
   .cta-icon {
-    font-size: 2.5rem;
+    font-size: 2rem;
     line-height: 1;
     display: block;
   }
 
   .cta-title {
     font-family: var(--font-mono);
-    font-size: var(--fs-display);
+    font-size: var(--fs-headline-lg);
     font-weight: 700;
     color: var(--primary);
     line-height: 1.15;
-    opacity: 0;
+    opacity: 1;
   }
 
   .cta-desc {
@@ -201,27 +217,129 @@ function linkAttrs(href: string) {
     color: var(--muted);
     line-height: 1.6;
     max-width: 480px;
-    opacity: 0;
+    opacity: 1;
   }
 
-  /* ── CTA Buttons ── */
-  .cta-buttons {
+  /* ── Contact Form ── */
+  .contact-form {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     width: 100%;
-    max-width: 320px;
-    margin-top: 0.25rem;
+    max-width: 100%;
+    margin: 0.5rem auto 0;
+    text-align: left;
+    opacity: 1;
   }
 
-  .cta-btn {
-    width: 100%;
-    padding: 0.85rem 1.5rem;
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .form-field label {
+    font-family: var(--font-mono);
     font-size: var(--fs-label);
-    font-family: var(--font-accent);
-    letter-spacing: 0.04em;
     font-weight: 600;
-    opacity: 0;
+    color: var(--text);
+    letter-spacing: 0.04em;
+  }
+
+  .required-mark {
+    color: var(--primary-container);
+    margin-left: 0.15em;
+  }
+
+  .form-field input,
+  .form-field textarea {
+    font-family: var(--font-body);
+    font-size: var(--fs-body-md);
+    color: var(--text);
+    background: var(--surface-container-low);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-md);
+    padding: 0.55rem 0.75rem;
+    min-height: 44px;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    width: 100%;
+    resize: vertical;
+  }
+
+  .form-field textarea {
+    font-family: var(--font-mono);
+    line-height: 1.5;
+  }
+
+  /* ── Token-derived cyan glow focus ring ── */
+  .form-field input:focus,
+  .form-field textarea:focus {
+    outline: none;
+    border-color: var(--primary-container);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--primary-container) 15%, transparent),
+      0 0 20px color-mix(in srgb, var(--primary-container) 8%, transparent);
+  }
+
+  /* ── Label hover/focus-within character-color effect ── */
+  .form-field:hover label,
+  .form-field:focus-within label {
+    color: var(--primary-container);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--primary-container) 20%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .form-field:hover label,
+    .form-field:focus-within label {
+      text-shadow: none;
+    }
+  }
+
+  .form-field input::placeholder,
+  .form-field textarea::placeholder {
+    color: var(--muted);
+    opacity: 0.7;
+  }
+
+  .form-privacy {
+    font-family: var(--font-body);
+    font-size: var(--fs-code);
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .contact-submit {
+    align-self: flex-start;
+    margin-top: 0.25rem;
+    padding: 0.65rem 1.25rem;
+    min-height: 44px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+
+  .form-success {
+    font-family: var(--font-mono);
+    color: var(--primary-container);
+    font-size: var(--fs-body-md);
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  /* Light theme form overrides */
+  [data-theme="light"] .form-field input,
+  [data-theme="light"] .form-field textarea {
+    background: #ffffff;
+    border-color: var(--outline-variant);
+    color: var(--text);
+  }
+
+  [data-theme="light"] .form-field input:focus,
+  [data-theme="light"] .form-field textarea:focus {
+    border-color: var(--primary-container);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--primary-container) 18%, transparent),
+      0 0 16px color-mix(in srgb, var(--primary-container) 10%, transparent);
   }
 
   /* ── Social Links (inside CTA card) ── */
@@ -288,34 +406,40 @@ function linkAttrs(href: string) {
   }
 
   /* ── Responsive ── */
-  @media (min-width: 540px) {
-    .cta-buttons {
-      flex-direction: row;
-      max-width: none;
-      justify-content: center;
-    }
-
-    .cta-btn {
-      width: auto;
-      min-width: 160px;
-    }
-  }
-
   @media (min-width: 720px) {
     .cta-card {
-      padding: 5rem 3rem;
-      gap: 1.5rem;
+      max-width: 560px;
+      padding: 3rem 2rem;
+      gap: 1.25rem;
     }
 
     .cta-icon {
-      font-size: 3rem;
+      font-size: 2.5rem;
+    }
+
+    .cta-title {
+      font-size: var(--fs-display);
+    }
+
+    .contact-form {
+      max-width: 440px;
+      gap: 0.85rem;
+    }
+
+    .form-field {
+      gap: 0.3rem;
+    }
+
+    .form-field input,
+    .form-field textarea {
+      padding: 0.6rem 0.85rem;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .cta-title,
     .cta-desc,
-    .cta-btn {
+    .contact-form {
       opacity: 1;
     }
   }

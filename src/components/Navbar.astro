@@ -1,14 +1,13 @@
 ---
 import ThemeToggle from './ThemeToggle.tsx';
-import LanguageToggle from './LanguageToggle.tsx';
 import { CV_VIEW_URL_EN } from '../config';
 
 const currentPath = Astro.url.pathname;
 
 const navLinks = [
+  { href: '/#experience', label: 'Experience' },
   { href: '/#work', label: 'Work' },
   { href: '/#skills', label: 'Skills' },
-  { href: '/#experience', label: 'Experience' },
   { href: '/#education', label: 'Education' },
   // { href: '/blog/', label: 'Blog' }, // Blog disabled — re-enable with blog feature
   { href: '/#contact', label: 'Contact' },
@@ -28,7 +27,18 @@ function isActive(href: string): boolean {
 
 <nav class="nav" id="main-nav" aria-label="Main navigation">
   <div class="nav-inner">
-    <a href="/" class="nav-logo" aria-label="Homepage">@rovox - Dev Architect</a>
+    <a href="/" class="nav-logo" aria-label="Homepage" title="portfolio rovox.exe">
+      <img
+        src="https://github.com/rovox.png"
+        alt=""
+        class="nav-logo-avatar"
+        width="32"
+        height="32"
+        loading="eager"
+        decoding="async"
+      />
+      <span class="nav-logo-wordmark">rovox</span>
+    </a>
 
     <div class="nav-links" role="list">
       {
@@ -44,7 +54,6 @@ function isActive(href: string): boolean {
         ))
       }
       <a href={CV_VIEW_URL_EN} target="_blank" rel="noopener noreferrer" class="btn btn-primary nav-resume">Resume</a>
-      <LanguageToggle client:only="react" />
       <ThemeToggle client:only="react" />
     </div>
 
@@ -62,7 +71,10 @@ function isActive(href: string): boolean {
   <!-- Mobile overlay -->
   <div class="nav-overlay" id="nav-overlay" aria-hidden="true" aria-label="Navigation menu">
     <div class="nav-overlay-header">
-      <a href="/" class="nav-overlay-logo" aria-label="Homepage">ROVOX - DEV ARCHITECT</a>
+      <a href="/" class="nav-overlay-logo" aria-label="Homepage" title="portfolio rovox.exe">
+        <img src="https://github.com/rovox.png" alt="" class="nav-logo-avatar nav-logo-avatar--lg" width="36" height="36" loading="eager" decoding="async" />
+        <span class="nav-logo-wordmark">rovox</span>
+      </a>
       <button class="nav-overlay-close" id="nav-overlay-close" aria-label="Close navigation menu">
         <span aria-hidden="true">&times;</span>
       </button>
@@ -79,7 +91,6 @@ function isActive(href: string): boolean {
         ))
       }
       <a href={CV_VIEW_URL_EN} target="_blank" rel="noopener noreferrer" class="btn btn-primary nav-resume-mobile">Resume</a>
-      <LanguageToggle client:only="react" />
       <ThemeToggle client:only="react" />
     </nav>
   </div>
@@ -170,13 +181,14 @@ function isActive(href: string): boolean {
       );
     }
 
-    // ── Hash link interception ──
+    // ── Hash link interception (delegated — covers navbar links + hero CTA) ──
     function handleHashLinkClick(e: Event) {
-      const link = e.currentTarget as HTMLAnchorElement;
-      const href = link.getAttribute('href');
-      if (!href || !href.startsWith('/#')) return;
+      const link = (e.target as HTMLElement).closest('a[href^="/#"]') as HTMLAnchorElement | null;
+      if (!link) return;
       if (window.location.pathname !== '/') return;
       e.preventDefault();
+      const href = link.getAttribute('href');
+      if (!href) return;
       const target = document.querySelector(href.replace('/', ''));
       if (!target) return;
       if ((window as any).lenis) {
@@ -187,13 +199,7 @@ function isActive(href: string): boolean {
       }
     }
 
-    document.querySelectorAll('.nav-link[href^="/#"]').forEach((el) => {
-      on(el, 'click', handleHashLinkClick);
-    });
-
-    document.querySelectorAll('.nav-overlay-link[href^="/#"]').forEach((el) => {
-      on(el, 'click', handleHashLinkClick);
-    });
+    on(document, 'click', handleHashLinkClick);
 
     // ── Preloader lifecycle ──
     if ((window as any).__portfolioLoaderDone) {
@@ -235,144 +241,38 @@ function isActive(href: string): boolean {
     position: relative;
   }
 
-  /* Logo */
+  /* Logo — avatar + wordmark lockup (desktop) */
   .nav-logo {
-    font-family: var(--font-mono);
-    font-size: var(--fs-headline-md);
-    font-weight: 700;
-    color: var(--primary);
-    text-decoration: none;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-    transition: color var(--transition-fast);
-  }
-
-  .nav-logo:hover {
-    color: var(--primary-container);
-  }
-
-  /* Desktop links */
-  .nav-links {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    list-style: none;
-    padding: 0.45rem 0.65rem;
-    border: 1px solid rgba(0, 242, 255, 0.08);
-    border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  .nav-link {
-    display: inline-block;
-    font-family: var(--font-accent);
-    font-size: var(--fs-label);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--muted);
+    gap: 0.5rem;
     text-decoration: none;
-    transition: color var(--transition-fast);
-    white-space: nowrap;
-    padding: 0.25rem 0;
-    position: relative;
+    color: var(--primary);
+    flex-shrink: 0;
   }
 
-  .nav-link:hover {
-    color: var(--primary-container);
+  .nav-logo-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
   }
 
-  .nav-link:hover::after,
-  .nav-link--active::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -0.1rem;
-    height: 2px;
-    border-radius: var(--radius-full);
-    background: currentColor;
-    opacity: 0.8;
+  .nav-logo-avatar--lg {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
   }
 
-  /* Active link — leading `>` in monospaced font */
-  .nav-link--active {
+  .nav-logo-wordmark {
+    font-family: var(--font-mono);
+    font-size: 1.125rem;
+    font-weight: 700;
     color: var(--primary);
   }
 
-  .nav-link--active::before {
-    content: '> ';
-    color: var(--primary-container);
-  }
-
-  /* Resume button */
-  .nav-resume {
-    margin-left: 0.5rem;
-    font-size: var(--fs-label);
-    font-family: var(--font-accent);
-    font-weight: 600;
-    padding: 0.45rem 1rem;
-    box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.04), 0 8px 18px rgba(0, 0, 0, 0.08);
-  }
-
-  /* ==============================================
-     Mobile hamburger
-     ============================================== */
-  .nav-toggle {
-    display: none;
-    background: none;
-    border: 1px solid rgba(0, 242, 255, 0.18);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    padding: 0.35rem 0.45rem;
-    color: var(--muted);
-    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  .nav-toggle:hover {
-    background: #ffffff;
-    color: #0d1515;
-    border-color: #ffffff;
-  }
-
-  .nav-toggle-icon {
-    font-size: 1.5rem;
-    line-height: 1;
-    display: inline-block;
-    width: 1.5rem;
-    text-align: center;
-  }
-
-  /* ==============================================
-     Mobile overlay
-     ============================================== */
-  .nav-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 2000;
-    background: rgba(13, 21, 21, 0.96);
-    backdrop-filter: blur(22px) saturate(150%);
-    -webkit-backdrop-filter: blur(22px) saturate(150%);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity var(--transition-normal), transform var(--transition-normal);
-  }
-
-  .nav-overlay--open {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .nav-overlay {
-      transition: none;
-    }
-  }
-
+  /* Overlay header — absolute bar inside mobile overlay */
   .nav-overlay-header {
     position: absolute;
     top: 0;
@@ -381,7 +281,7 @@ function isActive(href: string): boolean {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1.25rem;
   }
 
   .nav-overlay-logo {
@@ -397,7 +297,11 @@ function isActive(href: string): boolean {
     border: 1px solid rgba(0, 242, 255, 0.12);
     border-radius: var(--radius-md);
     cursor: pointer;
-    padding: 0.4rem 0.7rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--muted);
     font-size: 1.5rem;
     line-height: 1;
@@ -415,7 +319,8 @@ function isActive(href: string): boolean {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2rem;
+    gap: 1.5rem;
+    margin-top: 5rem;
   }
 
   .nav-overlay-link {
@@ -484,38 +389,82 @@ function isActive(href: string): boolean {
   }
 
   /* ==============================================
-     Language toggle button
+     Base: Desktop nav-links, hamburger, overlay
      ============================================== */
-  .lang-toggle {
-    display: inline-flex;
+  .nav-links {
+    display: flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: var(--radius-full);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: transparent;
-    cursor: pointer;
+    gap: 1.25rem;
+  }
+
+  .nav-link {
     font-family: var(--font-mono);
-    font-size: var(--fs-label);
+    font-size: var(--fs-code);
+    font-weight: 500;
     color: var(--muted);
-    line-height: 1;
-    transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+    padding: 0.5rem 0.25rem;
+    text-decoration: none;
+    transition: color var(--transition-fast);
   }
 
-  .lang-toggle:hover {
-    border-color: var(--primary-container);
+  .nav-link:hover {
+    color: var(--primary-container);
+  }
+
+  .nav-link--active {
     color: var(--primary);
-    background: rgba(255, 255, 255, 0.04);
   }
 
-  .lang-toggle-flag {
-    font-size: 1rem;
+  .nav-link--active::before {
+    content: '> ';
+    color: var(--primary-container);
+  }
+
+  .nav-resume {
+    padding: 0.5rem 1rem;
+    font-size: var(--fs-code);
+  }
+
+  .nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(0, 242, 255, 0.18);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .nav-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--primary-container);
+  }
+
+  .nav-toggle-icon {
+    font-size: 1.25rem;
     line-height: 1;
   }
 
-  .lang-toggle-label {
-    font-weight: 700;
-    letter-spacing: 0.04em;
+  .nav-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(13, 21, 21, 0.96);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-overlay--open {
+    display: flex;
   }
 
   /* ==============================================
@@ -523,7 +472,7 @@ function isActive(href: string): boolean {
      ============================================== */
   @media (max-width: 719px) {
     .nav-inner {
-      padding: 1rem 1.25rem;
+      padding: 0.75rem 1.25rem;
     }
 
     .nav-links {
@@ -532,8 +481,6 @@ function isActive(href: string): boolean {
 
     .nav-toggle {
       display: flex;
-      align-items: center;
-      justify-content: center;
     }
   }
 

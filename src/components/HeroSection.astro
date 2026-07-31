@@ -42,29 +42,8 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
 
         <!-- Action Buttons -->
         <div class="hero-actions">
-          <a
-            href="https://wa.me/59162642144"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="btn btn-primary btn-icon"
-            aria-label="WhatsApp"
-          >
-            <img
-              src="/icons/whatsapp-logo-svgrepo-com.svg"
-              alt="whatsapp icon contact"
-              style="min-height: 45px; height: 55px; width: auto; object-fit: contain;"
-            />
-          </a>
-          <a
-            href="mailto:varor.joseroberto@gmail.com"
-            class="btn btn-primary btn-icon"
-            aria-label="Email"
-          >
-            <img
-              src="/icons/gmail-svgrepo-com.svg"
-              alt="gmail icon contact"
-              style="min-height: 45px; height: 55px; width: auto; object-fit: contain;"
-            />
+          <a href="/#contact" class="btn btn-primary hero-cta-contact">
+            Contáctame
           </a>
           <a
             href={CV_DOWNLOAD_URL_EN}
@@ -244,25 +223,25 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
 
       // Pin the terminal when its center reaches the viewport center.
       // It stays centered while the rest of the page scrolls,
-      // and releases right before the skills section.
+      // and releases right before the experience section.
       terminalTriggers.push(
         ScrollTrigger.create({
           trigger: '.hero-terminal',
           start: 'center center',
-          endTrigger: '#skills',
+          endTrigger: '#experience',
           end: 'top 65%',
           pin: true,
           pinSpacing: false,
         }),
       );
 
-      // Fade out as the skills section approaches — the content
+      // Fade out as the experience section approaches — the content
       // "loses visibility" before the next section takes over.
       const fadeTween = gsap.to(terminal, {
         opacity: 0,
         ease: 'none',
         scrollTrigger: {
-          trigger: '#skills',
+          trigger: '#experience',
           start: 'top 80%',
           end: 'top 60%',
           scrub: 0.3,
@@ -465,31 +444,6 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
     margin-top: 0.75rem;
   }
 
-  .btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.65rem;
-    min-width: 56px;
-    min-height: 56px;
-    border-radius: var(--radius-md);
-    background: rgba(80, 82, 200, 1)
-    border: 1px solid rgba(0, 242, 255, 0.22);
-    box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.04), 0 10px 18px rgba(0, 0, 0, 0.08);
-  }
-
-  .btn-icon img {
-    display: block;
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-  }
-
-  .btn-icon:hover {
-    filter: contrast(80%);
-    background: linear-gradient(135deg, #50c8c2, #2a856e); 
-  }
-
   /* ── Terminal Card ── */
   .hero-terminal {
     width: 100%;
@@ -662,20 +616,6 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
 
   [data-theme="light"] .scanner-line {
     background: var(--primary-container);
-  }
-
-  [data-theme="light"] .btn-icon {
-    background: rgba(14, 116, 144, 0.07);
-    border-color: rgba(14, 116, 144, 0.22);
-    box-shadow: 0 0 0 1px rgba(14, 116, 144, 0.05), 0 10px 18px rgba(15, 23, 42, 0.06);
-  }
-
-  [data-theme="light"] .btn-icon img {
-    filter: none;
-  }
-
-  [data-theme="light"] .btn-icon:hover img {
-    filter: none;
   }
 
 </style>

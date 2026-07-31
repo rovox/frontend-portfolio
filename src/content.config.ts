@@ -75,6 +75,7 @@ const leadership = defineCollection({
     role: z.string(),
     organization: z.string(),
     year: z.string(),
+    image: z.string().optional(), // TODO: event photos — see LeadershipSection.astro
     order: z.number(),
   }),
 });

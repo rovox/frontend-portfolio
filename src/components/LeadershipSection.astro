@@ -22,6 +22,29 @@ const rendered = await Promise.all(
     <div class="leadership-grid">
       {rendered.map((item) => (
         <article class="leadership-item glass-card card-glow">
+          {/* TODO: add images of these events — uncomment when leadership entries have `image` field populated.
+              Expected markup:
+              {item.data.image && (
+                <figure class="leadership-figure">
+                  <img
+                    src={item.data.image}
+                    alt={`${item.data.role} at ${item.data.organization}`}
+                    class="leadership-img"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </figure>
+              )}
+              Suggested CSS:
+              .leadership-figure { margin: 0 0 1rem; }
+              .leadership-img {
+                width: 100%;
+                aspect-ratio: 16 / 9;
+                object-fit: cover;
+                border-radius: var(--radius-md);
+                border: 1px solid var(--border);
+              }
+          */}
           <h3 class="role">{item.data.role}</h3>
           <div class="meta">
             <span class="org">{item.data.organization}</span>
@@ -37,50 +60,53 @@ const rendered = await Promise.all(
 </section>
 
 <script>
-  import { gsap, ScrollTrigger } from '../utils/gsap-config';
-  import { prefersReducedMotion } from '../utils/reduced-motion';
+import { defineModule } from '../utils/lifecycle';
+import { gsap, ScrollTrigger } from '../utils/gsap-config';
+import { prefersReducedMotion } from '../utils/reduced-motion';
 
-  function initAnimations() {
-    if (prefersReducedMotion()) {
-      gsap.set('.leadership-item', { opacity: 1, y: 0 });
-      return;
-    }
-
+  defineModule('leadership', () => {
     const triggers: ScrollTrigger[] = [];
 
-    const cardsTween = gsap.fromTo(
-      '.leadership-item',
-      { opacity: 0, y: 40 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.7,
-        stagger: 0.12,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '#leadership',
-          start: 'top 70%',
-          once: true,
+    function init() {
+      if (prefersReducedMotion()) {
+        gsap.set('.leadership-item', { opacity: 1, y: 0 });
+        return;
+      }
+
+      const cardsTween = gsap.fromTo(
+        '.leadership-item',
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          stagger: 0.12,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#leadership',
+            start: 'top 70%',
+            once: true,
+          },
         },
-      },
-    );
-    if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+      );
+      if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+    }
 
-    document.addEventListener(
-      'astro:before-swap',
-      () => {
-        triggers.forEach((t) => t.kill());
-        triggers.length = 0;
-      },
-      { once: true },
-    );
-  }
+    if ((window as any).__portfolioLoaderDone) {
+      init();
+    } else {
+      const handler = () => {
+        init();
+        requestAnimationFrame(() => ScrollTrigger.refresh());
+      };
+      window.addEventListener('preloader:done', handler, { once: true });
+    }
 
-  if ((window as any).__portfolioLoaderDone) {
-    initAnimations();
-  } else {
-    window.addEventListener('preloader:done', initAnimations, { once: true });
-  }
+    return () => {
+      triggers.forEach((t) => t.kill());
+      triggers.length = 0;
+    };
+  });
 </script>
 
 <style>
@@ -92,7 +118,7 @@ const rendered = await Promise.all(
 
   .leadership-item {
     padding: 1.25rem;
-    opacity: 0;
+    opacity: 1;
   }
 
   .role {
