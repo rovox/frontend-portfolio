@@ -4,14 +4,14 @@
 
 ## Current Pipeline
 - **Phase**: DELIVER
-- **Feature**: Navbar, contact form viewport fit, visibility lifecycle, and WebGL diagnostics
+- **Feature**: Regression fixes — TideEffect bidirectional fade + navbar hash navigation (ClientRouter capture phase)
 - **Active Agent**: @orchestrator
 
 ## Artifacts Generated
 | Phase | Artifact | Status | Path |
 |-------|----------|--------|------|
-| DESIGN | Responsive/visibility repair spec | Revised | `specs/navbar-form-visibility-repair.md` |
-| BUILD | Navbar CSS regression fix, form compact+glow, visibility-first, WebGL resilience | Complete | `Navbar.astro`, `ContactSection.astro`, 5 section files, `Layout.astro`, `TideEffect.tsx`, `AGENTS.md` |
+| DIAG | Root cause: canvas unmount on hide → webglcontextlost → ST killed permanently; ClientRouter bubble click overrides hash links | Complete | — |
+| BUILD | TideEffect: canvas always mounted, `createFadeTrigger()` recreated on restore; Navbar: hash handler in capture phase | Complete | `TideEffect.tsx`, `Navbar.astro`, `AGENTS.md` |
 | GATE2 | pnpm check (0 errors) + pnpm build PASS | Complete | — |
 
 ## Rule Violation Alerts
@@ -19,6 +19,8 @@
 |-------|------|------|-------------|----------|--------|
 | @orchestrator | WebGL resilience | `src/components/Hero3D/TideEffect.tsx` | Context loss has no recovery/fallback path | Medium | Fixed |
 | @orchestrator | Visibility progressive enhancement | Section components | Several cards defaulted to `opacity: 0` before GSAP reveals them | High | Fixed |
+| @orchestrator | WebGL context-loss recovery | `src/components/Hero3D/TideEffect.tsx` | Context loss killed the fade ScrollTrigger permanently (waves disappeared forever) | High | Fixed |
+| @orchestrator | Hash navigation vs ClientRouter | `src/components/Navbar.astro` | ClientRouter bubble listener intercepted `/#hash` clicks before Lenis handler | High | Fixed |
 
 ## Handoff Log
 1. [timestamp] @orchestrator -> @design-overseer: brief delivered

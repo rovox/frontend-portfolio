@@ -37,10 +37,15 @@ const { title } = Astro.props;
 
     <script is:inline>
       (function() {
-        // Theme
-        const stored = localStorage.getItem('theme');
-        const theme = stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', theme);
+        // Theme DISABLED — site is dark-mode only.
+        // Previous logic (localStorage 'theme' + prefers-color-scheme) is
+        // commented out. Re-enable to restore light/dark switching:
+        //
+        //   const stored = localStorage.getItem('theme');
+        //   const theme = stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        //   document.documentElement.setAttribute('data-theme', theme);
+        //
+        document.documentElement.setAttribute('data-theme', 'dark');
       })();
     </script>
     <title>{title}</title>
@@ -228,8 +233,8 @@ const { title } = Astro.props;
 
     /* Outline */
     --outline: #849495;
-    --outline-variant: #3a494b;
-    --border: rgba(58, 73, 75, 0.25);
+    --outline-variant: color-mix(in srgb, var(--outline) 50%, var(--surface-container-low));
+    --border: color-mix(in srgb, var(--outline-variant) 50%, transparent);
 
     /* Error */
     --error: #ffb4ab;
@@ -632,27 +637,27 @@ const { title } = Astro.props;
     background: rgba(0, 242, 255, 0.1);
   }
 
-  :root[data-theme="light"] .nav-overlay {
+  :root[data-theme="light"] .nav-drawer {
     background: rgba(13, 21, 21, 0.96);
   }
 
-  :root[data-theme="light"] .nav-overlay-logo {
-    color: #e1fdff;
-  }
-
-  :root[data-theme="light"] .nav-overlay-link {
+  :root[data-theme="light"] .nav-drawer-title {
     color: #b9cacb;
   }
 
-  :root[data-theme="light"] .nav-overlay-link:hover {
+  :root[data-theme="light"] .nav-drawer-link {
+    color: #b9cacb;
+  }
+
+  :root[data-theme="light"] .nav-drawer-link:hover {
     color: #00f2ff;
   }
 
-  :root[data-theme="light"] .nav-overlay-link--active {
+  :root[data-theme="light"] .nav-drawer-link--active {
     color: #e1fdff;
   }
 
-  :root[data-theme="light"] .nav-overlay-link--active::before {
+  :root[data-theme="light"] .nav-drawer-link--active::before {
     color: #00f2ff;
   }
 
@@ -678,13 +683,13 @@ const { title } = Astro.props;
     border-color: #ffffff;
   }
 
-  :root[data-theme="light"] .nav-overlay-close {
+  :root[data-theme="light"] .nav-drawer-close {
     color: #b9cacb;
     border-color: rgba(0, 242, 255, 0.12);
     background: rgba(255, 255, 255, 0.02);
   }
 
-  :root[data-theme="light"] .nav-overlay-close:hover {
+  :root[data-theme="light"] .nav-drawer-close:hover {
     background: #ffffff;
     color: #0d1515;
     border-color: #ffffff;

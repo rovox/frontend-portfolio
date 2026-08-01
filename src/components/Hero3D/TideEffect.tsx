@@ -80,7 +80,6 @@ function WaterPlane({ lowPower = false }: WaterPlaneProps) {
 
 export default function TideEffect() {
   const [lowPower, setLowPower] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const [contextLost, setContextLost] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const stRef = useRef<ScrollTrigger | null>(null);
@@ -95,10 +94,16 @@ export default function TideEffect() {
 
   // Scroll-driven: waves grow and fade as user scrolls through hero.
   // Runs even under prefers-reduced-motion (user-controlled, not autonomous).
-  useEffect(() => {
-    if (!wrapperRef.current) return;
+  //
+  // The Canvas stays mounted — visibility is driven purely by wrapper CSS
+  // (opacity/visibility). Unmounting the canvas on hide (as a previous version
+  // did) could trigger `webglcontextlost` in Firefox and permanently kill this
+  // ScrollTrigger, making the waves disappear forever. Keeping it mounted means
+  // the fade always comes back when scrolling up.
+  const createFadeTrigger = useCallback((): ScrollTrigger | null => {
+    if (!wrapperRef.current) return null;
 
-    const st = ScrollTrigger.create({
+    return ScrollTrigger.create({
       trigger: '.hero',
       start: 'top top',
       end: 'bottom top',
@@ -112,32 +117,34 @@ export default function TideEffect() {
         el.style.transform = `scale(${1 + progress * 0.6})`;
         el.style.transformOrigin = 'center bottom';
         el.style.visibility = progress < 0.99 ? 'visible' : 'hidden';
-        setHidden(progress >= 0.99);
       },
     });
-
-    stRef.current = st;
-
-    return () => {
-      st.kill();
-      stRef.current = null;
-    };
   }, []);
 
-  // WebGL context-loss handlers
+  useEffect(() => {
+    stRef.current = createFadeTrigger();
+    return () => {
+      stRef.current?.kill();
+      stRef.current = null;
+    };
+  }, [createFadeTrigger]);
+
+  // WebGL context-loss handlers. If the context is genuinely lost (GPU reset),
+  // show the static fallback. The ScrollTrigger is recreated on restore so the
+  // controlled fade always comes back.
   const handleContextLost = useCallback((e: Event) => {
     e.preventDefault();
     setContextLost(true);
-    // Kill the ScrollTrigger since canvas is gone
     stRef.current?.kill();
     stRef.current = null;
-    setHidden(true);
   }, []);
 
   const handleContextRestored = useCallback(() => {
     setContextLost(false);
-    setHidden(false);
-  }, []);
+    if (!stRef.current) {
+      stRef.current = createFadeTrigger();
+    }
+  }, [createFadeTrigger]);
 
   const onCanvasCreated = useCallback(
     ({ gl }: { gl: WebGLRenderer }) => {
@@ -146,12 +153,6 @@ export default function TideEffect() {
     },
     [handleContextLost, handleContextRestored],
   );
-
-  // Cleanup context-lost listeners if canvas remounts
-  useEffect(() => {
-    // No direct DOM access here — listeners are cleaned up by React unmount
-    // and re-attached on next Canvas mount via onCreated.
-  }, [contextLost]);
 
   return (
     <div
@@ -194,7 +195,7 @@ export default function TideEffect() {
               background: 'linear-gradient(180deg, transparent 0%, rgba(0,45,95,0.3) 100%)',
             }}
           />
-        ) : !hidden ? (
+        ) : (
           <Canvas
             frameloop="always"
             camera={{ position: [0, 2.5, 4], fov: 50 }}
@@ -208,7 +209,7 @@ export default function TideEffect() {
             <pointLight position={[-3, 2, -2]} intensity={0.3} color="#2de2e6" />
             <WaterPlane lowPower={lowPower} />
           </Canvas>
-        ) : null}
+        )}
       </div>
     </div>
   );

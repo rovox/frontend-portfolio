@@ -252,7 +252,7 @@ export const FORMSPREE_ENDPOINT = 'https://formspree.io/f/XXXXXXXX';
 - **Add** a single primary CTA:
   ```astro
   <a href="/#contact" class="btn btn-primary hero-cta-contact">
-    Contáctame
+    Contact me
   </a>
   ```
 - Keep the existing "Download CV" ghost button.

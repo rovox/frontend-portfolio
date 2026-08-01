@@ -1,5 +1,8 @@
 ---
-import ThemeToggle from './ThemeToggle.tsx';
+// Theme toggle DISABLED — site is dark-mode only. Component kept in repo;
+// re-enable the three `<ThemeToggle client:only="react" />` lines below plus
+// the theme init logic in Layout.astro to restore light/dark switching.
+// import ThemeToggle from './ThemeToggle.tsx';
 import { CV_VIEW_URL_EN } from '../config';
 
 const currentPath = Astro.url.pathname;
@@ -54,7 +57,8 @@ function isActive(href: string): boolean {
         ))
       }
       <a href={CV_VIEW_URL_EN} target="_blank" rel="noopener noreferrer" class="btn btn-primary nav-resume">Resume</a>
-      <ThemeToggle client:only="react" />
+      {/* ThemeToggle disabled — dark mode only */}
+      {/* <ThemeToggle client:only="react" /> */}
     </div>
 
     <button
@@ -62,36 +66,37 @@ function isActive(href: string): boolean {
       id="nav-toggle"
       aria-expanded="false"
       aria-label="Toggle navigation menu"
-      aria-controls="nav-overlay"
+      aria-controls="nav-drawer"
     >
       <span class="nav-toggle-icon" aria-hidden="true">&#9776;</span>
     </button>
   </div>
 
-  <!-- Mobile overlay -->
-  <div class="nav-overlay" id="nav-overlay" aria-hidden="true" aria-label="Navigation menu">
-    <div class="nav-overlay-header">
-      <a href="/" class="nav-overlay-logo" aria-label="Homepage" title="portfolio rovox.exe">
-        <img src="https://github.com/rovox.png" alt="" class="nav-logo-avatar nav-logo-avatar--lg" width="36" height="36" loading="eager" decoding="async" />
-        <span class="nav-logo-wordmark">rovox</span>
-      </a>
-      <button class="nav-overlay-close" id="nav-overlay-close" aria-label="Close navigation menu">
+  <!-- Mobile nav backdrop (dims page below navbar; click to close) -->
+  <div class="nav-backdrop" id="nav-backdrop" aria-hidden="true"></div>
+
+  <!-- Mobile drawer — compact right-side panel -->
+  <div class="nav-drawer" id="nav-drawer" aria-hidden="true" aria-label="Navigation menu">
+    <div class="nav-drawer-header">
+      <span class="nav-drawer-title" aria-hidden="true">Menu</span>
+      <button class="nav-drawer-close" id="nav-drawer-close" aria-label="Close navigation menu">
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
-    <nav class="nav-overlay-content">
+    <nav class="nav-drawer-content">
       {
         navLinks.map(({ href, label }) => (
           <a
             href={href}
-            class={'nav-overlay-link' + (isActive(href) ? ' nav-overlay-link--active' : '')}
+            class={'nav-drawer-link' + (isActive(href) ? ' nav-drawer-link--active' : '')}
           >
             {label}
           </a>
         ))
       }
       <a href={CV_VIEW_URL_EN} target="_blank" rel="noopener noreferrer" class="btn btn-primary nav-resume-mobile">Resume</a>
-      <ThemeToggle client:only="react" />
+      {/* ThemeToggle disabled — dark mode only */}
+      {/* <ThemeToggle client:only="react" /> */}
     </nav>
   </div>
 </nav>
@@ -122,38 +127,41 @@ function isActive(href: string): boolean {
       listeners.length = 0;
     }
 
-    // ── Overlay open/close ──
-    function initNavOverlay() {
+    // ── Drawer open/close ──
+    function initNavDrawer() {
       const toggle = document.getElementById('nav-toggle')!;
-      const overlay = document.getElementById('nav-overlay')!;
-      const closeBtn = document.getElementById('nav-overlay-close');
-      const overlayLinks = overlay.querySelectorAll('.nav-overlay-link');
+      const drawer = document.getElementById('nav-drawer')!;
+      const backdrop = document.getElementById('nav-backdrop')!;
+      const closeBtn = document.getElementById('nav-drawer-close');
+      const drawerLinks = drawer.querySelectorAll('.nav-drawer-link');
 
       let isOpen = false;
+      let focusRestore: HTMLElement | null = null;
 
       function open() {
+        if (isOpen) return;
         isOpen = true;
+        focusRestore = document.activeElement as HTMLElement;
         toggle.setAttribute('aria-expanded', 'true');
-        overlay.setAttribute('aria-hidden', 'false');
+        drawer.setAttribute('aria-hidden', 'false');
+        backdrop.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
-        overlay.style.display = 'flex';
-        void overlay.offsetHeight;
-        overlay.classList.add('nav-overlay--open');
+        drawer.classList.add('nav-drawer--open');
+        backdrop.classList.add('nav-backdrop--open');
+        closeBtn?.focus();
       }
 
       function close() {
+        if (!isOpen) return;
         isOpen = false;
         toggle.setAttribute('aria-expanded', 'false');
-        overlay.setAttribute('aria-hidden', 'true');
+        drawer.setAttribute('aria-hidden', 'true');
+        backdrop.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
-        overlay.classList.remove('nav-overlay--open');
-        overlay.addEventListener(
-          'transitionend',
-          () => {
-            if (!isOpen) overlay.style.display = 'none';
-          },
-          { once: true },
-        );
+        drawer.classList.remove('nav-drawer--open');
+        backdrop.classList.remove('nav-backdrop--open');
+        focusRestore?.focus();
+        focusRestore = null;
       }
 
       on(toggle, 'click', () => {
@@ -161,9 +169,11 @@ function isActive(href: string): boolean {
         else open();
       });
 
+      on(backdrop, 'click', close);
+
       if (closeBtn) on(closeBtn, 'click', close);
 
-      overlayLinks.forEach((link) => {
+      drawerLinks.forEach((link) => {
         on(link, 'click', close);
       });
 
@@ -182,6 +192,12 @@ function isActive(href: string): boolean {
     }
 
     // ── Hash link interception (delegated — covers navbar links + hero CTA) ──
+    // Registered in CAPTURE phase: Astro's ClientRouter attaches its own
+    // document click listener (bubble phase) BEFORE this script runs, and
+    // intercepts every anchor click with preventDefault + navigate(). By
+    // handling hash links in the capture phase we run first; our preventDefault
+    // makes ClientRouter bail out (it checks `ev.defaultPrevented`), so the
+    // Lenis smooth-scroll below is the only navigation that happens.
     function handleHashLinkClick(e: Event) {
       const link = (e.target as HTMLElement).closest('a[href^="/#"]') as HTMLAnchorElement | null;
       if (!link) return;
@@ -199,17 +215,85 @@ function isActive(href: string): boolean {
       }
     }
 
-    on(document, 'click', handleHashLinkClick);
+    on(document, 'click', handleHashLinkClick, { capture: true });
+
+    // ── Scrollspy — active section indicator ──
+    const spySections = ['experience', 'work', 'skills', 'education', 'contact'];
+    let spyRAF = 0;
+
+    function updateScrollspy() {
+      const viewMid = window.innerHeight * 0.4;
+      let currentId = spySections[0];
+
+      for (const id of spySections) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= viewMid) {
+          currentId = id;
+        }
+      }
+
+      // Bottom-of-page: last section active
+      const scrollBottom = window.innerHeight + window.scrollY;
+      if (scrollBottom >= document.documentElement.scrollHeight - 2) {
+        currentId = spySections[spySections.length - 1];
+      }
+
+      // Desktop nav links
+      document.querySelectorAll('.nav-link').forEach((link) => {
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('/#')) {
+          const active = href === `/#${currentId}`;
+          link.classList.toggle('nav-link--active', active);
+          if (active) link.setAttribute('aria-current', 'page');
+          else link.removeAttribute('aria-current');
+        }
+      });
+
+      // Mobile drawer links
+      document.querySelectorAll('.nav-drawer-link').forEach((link) => {
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('/#')) {
+          const active = href === `/#${currentId}`;
+          link.classList.toggle('nav-drawer-link--active', active);
+        }
+      });
+    }
+
+    on(
+      window,
+      'scroll',
+      () => {
+        if (!spyRAF) {
+          spyRAF = requestAnimationFrame(() => {
+            spyRAF = 0;
+            updateScrollspy();
+          });
+        }
+      },
+      { passive: true },
+    );
 
     // ── Preloader lifecycle ──
+    function init() {
+      initNavDrawer();
+      updateScrollspy();
+    }
+
     if ((window as any).__portfolioLoaderDone) {
-      initNavOverlay();
+      init();
     } else {
-      const preloaderHandler = () => initNavOverlay();
+      const preloaderHandler = () => init();
       on(window, 'preloader:done', preloaderHandler, { once: true });
     }
 
-    return cleanup;
+    return () => {
+      if (spyRAF) {
+        cancelAnimationFrame(spyRAF);
+        spyRAF = 0;
+      }
+      cleanup();
+    };
   });
 </script>
 
@@ -272,28 +356,75 @@ function isActive(href: string): boolean {
     color: var(--primary);
   }
 
-  /* Overlay header — absolute bar inside mobile overlay */
-  .nav-overlay-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+  /* ==============================================
+     Mobile drawer — compact right-side panel
+     ============================================== */
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 997;
+    background: rgba(0, 0, 0, 0.28);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .nav-backdrop--open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .nav-drawer {
+    position: fixed;
+    top: 76px;
+    right: 1rem;
+    width: min(280px, calc(100vw - 2rem));
+    max-height: calc(100vh - 92px);
+    overflow-y: auto;
+    z-index: 998;
+    display: flex;
+    flex-direction: column;
+    background: rgba(13, 21, 21, 0.92);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(0, 242, 255, 0.14);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(110%);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-drawer--open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .nav-drawer-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1.25rem;
+    padding: 0.75rem 0.75rem 0.5rem 1.25rem;
+    border-bottom: 1px solid rgba(0, 242, 255, 0.08);
   }
 
-  .nav-overlay-logo {
+  .nav-drawer-title {
     font-family: var(--font-mono);
-    font-size: var(--fs-headline-md);
+    font-size: var(--fs-code);
     font-weight: 700;
-    color: var(--primary);
-    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
 
-  .nav-overlay-close {
-    background: none;
+  .nav-drawer-close {
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(0, 242, 255, 0.12);
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -306,43 +437,57 @@ function isActive(href: string): boolean {
     font-size: 1.5rem;
     line-height: 1;
     transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-    background: rgba(255, 255, 255, 0.02);
   }
 
-  .nav-overlay-close:hover {
+  .nav-drawer-close:hover {
     background: #ffffff;
     color: #0d1515;
     border-color: #ffffff;
   }
 
-  .nav-overlay-content {
+  .nav-drawer-content {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    margin-top: 5rem;
+    padding: 0.75rem;
+    gap: 0.25rem;
   }
 
-  .nav-overlay-link {
+  .nav-drawer-link {
     font-family: var(--font-mono);
-    font-size: var(--fs-headline-md);
+    font-size: var(--fs-body-md);
     font-weight: 600;
     color: var(--muted);
     text-decoration: none;
-    transition: color var(--transition-fast);
-    padding: 0.75rem 0.5rem;
+    transition: color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
   }
 
-  .nav-overlay-link:hover {
-    color: var(--primary-container);
-  }
-
-  .nav-overlay-link--active {
-    color: var(--primary);
-  }
-
-  .nav-overlay-link--active::before {
+  .nav-drawer-link::before {
     content: '> ';
+    color: var(--primary-container);
+    opacity: 0.5;
+    font-weight: 700;
+  }
+
+  .nav-drawer-link:hover {
+    color: var(--primary);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .nav-drawer-link--active {
+    color: var(--primary);
+    background: rgba(0, 242, 255, 0.08);
+    box-shadow: inset 2px 0 0 var(--primary-container);
+  }
+
+  .nav-drawer-link--active::before {
+    opacity: 1;
     color: var(--primary-container);
   }
 
@@ -350,6 +495,12 @@ function isActive(href: string): boolean {
     margin-top: 0.5rem;
     font-size: var(--fs-body-md);
     padding: 0.65rem 1.5rem;
+    align-self: flex-start;
+  }
+
+  /* Theme toggle inside drawer — centered, with top spacing */
+  .nav-drawer .theme-toggle {
+    margin: 0.75rem auto 0.25rem;
   }
 
   /* ==============================================
@@ -450,23 +601,6 @@ function isActive(href: string): boolean {
     line-height: 1;
   }
 
-  .nav-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-    background: rgba(13, 21, 21, 0.96);
-    backdrop-filter: blur(22px) saturate(150%);
-    -webkit-backdrop-filter: blur(22px) saturate(150%);
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .nav-overlay--open {
-    display: flex;
-  }
-
   /* ==============================================
      Responsive
      ============================================== */
@@ -485,8 +619,16 @@ function isActive(href: string): boolean {
   }
 
   @media (min-width: 720px) {
-    .nav-overlay {
+    .nav-drawer,
+    .nav-backdrop {
       display: none !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-drawer,
+    .nav-backdrop {
+      transition: none;
     }
   }
 </style>
