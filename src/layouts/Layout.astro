@@ -140,6 +140,10 @@ const { title, description, image, type, jsonLd } = Astro.props;
       }, { once: true });
     </script>
 
+    <script>
+      import '../scripts/interactions';
+    </script>
+
     <AudioController client:only="react" />
     <ScrollInactivityHint client:only="react" />
 
@@ -581,5 +585,65 @@ const { title, description, image, type, jsonLd } = Astro.props;
     .scroll-inactivity-hint {
       animation: none !important;
     }
+  }
+
+  /* ── GSAP interaction layer (src/scripts/interactions.ts) ── */
+  .fx-magnetic,
+  .fx-tilt {
+    /* GSAP drives transform per frame; a CSS transform transition would fight it. */
+    transition-property: border-color, background, background-color, box-shadow, color, opacity !important;
+  }
+  .fx-tilt {
+    transform-style: preserve-3d;
+    background-image: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(0, 242, 255, 0.07),
+      transparent 45%
+    );
+  }
+  .fx-cursor-dot,
+  .fx-cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 50%;
+  }
+  .fx-cursor-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--primary-container);
+  }
+  .fx-cursor-ring {
+    width: 34px;
+    height: 34px;
+    border: 1px solid color-mix(in srgb, var(--primary-container) 70%, transparent);
+    display: grid;
+    place-items: center;
+    mix-blend-mode: difference;
+  }
+  .fx-cursor-label {
+    font-family: var(--font-mono);
+    font-size: 5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+    opacity: 0;
+  }
+  .fx-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    translate: -50% 0;
+    z-index: 9998;
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--primary-container);
+    background: rgba(13, 21, 21, 0.92);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    visibility: hidden;
   }
 </style>

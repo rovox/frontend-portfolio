@@ -1,15 +1,26 @@
 ---
 import { glance, summary } from '../data/summary';
-interface Props { heading?: string }
-const { heading = 'At a glance' } = Astro.props;
+interface Stat { value: number; suffix?: string; label: string }
+interface Props { heading?: string; stats?: Stat[] }
+const { heading = 'At a glance', stats = [] } = Astro.props;
 ---
 
 <section class="glance container" aria-labelledby="glance-heading">
   <h2 id="glance-heading" class="glance-title">{heading}</h2>
   <p class="glance-summary">{summary.short}</p>
-  <dl class="glance-list">
+  {stats.length > 0 && (
+    <ul class="glance-stats" data-reveal>
+      {stats.map((s) => (
+        <li class="glance-stat" data-reveal-item>
+          <span class="glance-stat-value" data-count={s.value} data-suffix={s.suffix ?? ''}>{s.value}{s.suffix ?? ''}</span>
+          <span class="glance-stat-label">{s.label}</span>
+        </li>
+      ))}
+    </ul>
+  )}
+  <dl class="glance-list" data-reveal>
     {glance.map((item) => (
-      <div class="glance-item">
+      <div class="glance-item glass-card card-glow" data-reveal-item>
         <dt>{item.q}</dt>
         <dd>{item.a}</dd>
       </div>
@@ -23,6 +34,10 @@ const { heading = 'At a glance' } = Astro.props;
   .glance-summary { max-width: 70ch; color: var(--text); line-height: 1.7; margin-bottom: 1.5rem; }
   .glance-list { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
   .glance-item { padding: 1rem 1.25rem; border: 1px solid var(--outline-variant, rgba(255,255,255,0.12)); border-radius: var(--radius-lg, 12px); }
+  .glance-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; list-style: none; padding: 0; margin: 0 0 1.5rem; }
+  .glance-stat { display: flex; flex-direction: column; gap: 0.25rem; }
+  .glance-stat-value { font-family: var(--font-display); font-size: clamp(2.5rem, 7vw, 3.75rem); line-height: 1; color: var(--primary-container); font-variant-numeric: tabular-nums; }
+  .glance-stat-label { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
   dt { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.35rem; }
   dd { margin: 0; line-height: 1.5; }
 </style>

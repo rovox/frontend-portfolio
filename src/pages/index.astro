@@ -12,6 +12,7 @@ import ContactSection from '../components/ContactSection.astro';
 import AtAGlance from '../components/AtAGlance.astro';
 import { summary } from '../data/summary';
 import { SITE_URL } from '../config';
+import Marquee from '../components/effects/Marquee.astro';
 import LazyTideEffect from '../components/Hero3D/LazyTideEffect.tsx';
 // ParallaxLayer removed from hero — the transformed wrapper breaks
 // GSAP position:fixed pinning used by the terminal journey.
@@ -31,6 +32,15 @@ education.sort((a, b) => a.data.order - b.data.order);
 
 const leadership = await getCollection('leadership');
 leadership.sort((a, b) => a.data.order - b.data.order);
+
+const techs = [...new Set([...projects, ...experiences].flatMap((e) => e.data.technologies))];
+const half = Math.ceil(techs.length / 2);
+const stats = [
+  { value: experiences.length, suffix: '+', label: 'Roles & experiences' },
+  { value: projects.length, suffix: '+', label: 'Projects shipped' },
+  { value: techs.length, suffix: '+', label: 'Technologies used' },
+  { value: leadership.length, label: 'Leadership roles' },
+];
 ---
 
 <Layout
@@ -47,12 +57,14 @@ leadership.sort((a, b) => a.data.order - b.data.order);
 >
   <LazyTideEffect client:only="react" />
   <HeroSection />
-  <AtAGlance />
   <ExperienceSection items={experiences} />
   <ProjectsSection items={projects} />
+  <Marquee items={techs.slice(0, half)} label="Technologies I work with" />
+  <Marquee items={techs.slice(half)} reverse label="More technologies I work with" />
   <SkillsSection items={skills} />
   <EducationSection items={education} />
   <LeadershipSection items={leadership} />
+  <AtAGlance stats={stats} />
   <!-- <LatestPosts /> -->
   <ContactSection />
 </Layout>
