@@ -156,11 +156,10 @@ Lenis se destruye en `astro:before-swap` para evitar leaks.
 
 URL de producción: `PUBLIC_SITE_URL` (por defecto `https://frontend-portfolio.varor-joseroberto.workers.dev`).
 
-## Deploy (GitHub Actions → Cloudflare Workers)
+## Deploy (Cloudflare Workers Builds)
 
-- `.github/workflows/ci.yml`: `pnpm check` + `pnpm build` en cada PR/push.
-- `.github/workflows/deploy.yml`: build y `wrangler deploy` en cada push a `master`.
-- Secrets requeridos en el repo: `CLOUDFLARE_API_TOKEN` (permiso *Workers Scripts: Edit*) y `CLOUDFLARE_ACCOUNT_ID`.
+- El repo está conectado a **Cloudflare Workers Builds**: cada push a `master` se construye y despliega automáticamente (sin API token en GitHub). Las demás ramas generan builds de preview.
+- `.github/workflows/ci.yml`: `pnpm check` + `pnpm build` + verificación de archivos SEO/AEO en cada PR/push.
 
 ## Comandos
 
