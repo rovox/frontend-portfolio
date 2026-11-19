@@ -66,6 +66,9 @@ importers:
       '@types/three':
         specifier: ^0.183.1
         version: 0.183.1
+      sharp:
+        specifier: 0.34.5
+        version: 0.34.5
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
