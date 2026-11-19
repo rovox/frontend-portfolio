@@ -136,6 +136,32 @@ Lenis se destruye en `astro:before-swap` para evitar leaks.
 | Right-side cutoff | `100vw` → `100%`, removido GSAP scale/rotation |
 | DynamicBackground GSAP leak | Eliminada animación ScrollTrigger innecesaria |
 
+## SEO, AEO y rendimiento
+
+| Archivo / módulo | Propósito |
+|---|---|
+| `src/components/SEO.astro` | Title, description, canonical, Open Graph, Twitter Card y JSON-LD (`WebSite`, `Person`, `ProfilePage`, `CreativeWork`) |
+| `src/data/summary.ts` | Fuente única de datos de identidad (SEO, llms.txt, bloque "At a glance") |
+| `public/robots.txt` | Permite buscadores y crawlers de IA (GPTBot, ClaudeBot, PerplexityBot, Google-Extended…) |
+| `/llms.txt`, `/llms-full.txt` | Resumen y contenido completo para LLMs, generados en build desde las content collections |
+| `/sitemap.xml` | Sitemap generado en build |
+| `public/og.jpg` | Imagen social 1200×630 |
+| `public/_headers` | Caché inmutable para `/_astro/*` y cabeceras de seguridad |
+| `src/scripts/interactions.ts` | Capa de interacción GSAP (magnetic, tilt, cursor, scramble, contadores, marquee, toast del CV) con `gsap.matchMedia()` y respeto a `prefers-reduced-motion` |
+
+- Imágenes optimizadas en build (`imageService: 'compile'`, AVIF/WebP).
+- Fuentes self-hosted (solo subset latin), sin Google Fonts bloqueante.
+- El splash solo se muestra una vez por sesión en escritorio; WebGL se omite en móvil, Save-Data y reduced motion.
+- CV: `public/cv-jose-roberto-vargas-{en,es}.pdf`, descarga directa con atributo `download`.
+
+URL de producción: `PUBLIC_SITE_URL` (por defecto `https://frontend-portfolio.varor-joseroberto.workers.dev`).
+
+## Deploy (GitHub Actions → Cloudflare Workers)
+
+- `.github/workflows/ci.yml`: `pnpm check` + `pnpm build` en cada PR/push.
+- `.github/workflows/deploy.yml`: build y `wrangler deploy` en cada push a `master`.
+- Secrets requeridos en el repo: `CLOUDFLARE_API_TOKEN` (permiso *Workers Scripts: Edit*) y `CLOUDFLARE_ACCOUNT_ID`.
+
 ## Comandos
 
 ```bash

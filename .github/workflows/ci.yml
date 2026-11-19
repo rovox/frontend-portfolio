@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm build
+      - name: Verify SEO/AEO files were generated
+        run: |
+          for f in robots.txt llms.txt llms-full.txt sitemap.xml og.jpg cv-jose-roberto-vargas-en.pdf cv-jose-roberto-vargas-es.pdf; do
+            test -s "dist/client/$f" || { echo "missing dist/client/$f"; exit 1; }
+          done
