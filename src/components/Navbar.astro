@@ -30,9 +30,9 @@ function isActive(href: string): boolean {
 
 <nav class="nav" id="main-nav" aria-label="Main navigation">
   <div class="nav-inner">
-    <a href="/" class="nav-logo" aria-label="Homepage" title="portfolio rovox.exe">
+    <a href="/" class="nav-logo" aria-label="rovox — homepage" title="portfolio rovox.exe">
       <img
-        src="https://github.com/rovox.png"
+        src="/images/avatar.webp"
         alt=""
         class="nav-logo-avatar"
         width="32"
@@ -43,13 +43,12 @@ function isActive(href: string): boolean {
       <span class="nav-logo-wordmark">rovox</span>
     </a>
 
-    <div class="nav-links" role="list">
+    <div class="nav-links">
       {
         navLinks.map(({ href, label }) => (
           <a
             href={href}
             class={'nav-link' + (isActive(href) ? ' nav-link--active' : '')}
-            role="listitem"
             aria-current={isActive(href) ? 'page' : undefined}
           >
             {label}

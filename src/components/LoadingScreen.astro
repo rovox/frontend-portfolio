@@ -324,7 +324,10 @@
     var seen = false;
     try { seen = sessionStorage.getItem('splash-seen') === '1'; } catch (e) {}
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (seen || reduce) { logLifecycle(MOD, 'splash skipped (seen/reduced)'); finish(State.SKIPPED); return; }
+    // Mobile/touch & Save-Data: the 7s timeline costs seconds of main-thread time on phones.
+    var small = window.matchMedia && window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+    var saveData = !!(navigator.connection && navigator.connection.saveData);
+    if (seen || reduce || small || saveData) { logLifecycle(MOD, 'splash skipped (seen/reduced)'); finish(State.SKIPPED); return; }
     try { sessionStorage.setItem('splash-seen', '1'); } catch (e) {}
 
     transition(State.RUNNING);

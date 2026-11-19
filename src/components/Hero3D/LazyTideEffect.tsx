@@ -19,7 +19,7 @@ export default function LazyTideEffect() {
     // Perf: skip the WebGL scene for reduced motion, Save-Data, or low-end devices.
     const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
     const lowEnd =
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      window.matchMedia('(prefers-reduced-motion: reduce), (max-width: 768px), (pointer: coarse)').matches ||
       nav.connection?.saveData === true ||
       (nav.hardwareConcurrency ?? 8) < 4 ||
       (nav.deviceMemory ?? 8) < 4;
@@ -27,7 +27,7 @@ export default function LazyTideEffect() {
 
     const start = () => {
       const idle = (window as any).requestIdleCallback as ((cb: () => void, o?: { timeout: number }) => number) | undefined;
-      if (idle) idle(() => setShow(true), { timeout: 1500 });
+      if (idle) idle(() => setShow(true), { timeout: 3000 });
       else setTimeout(() => setShow(true), 200);
     };
 

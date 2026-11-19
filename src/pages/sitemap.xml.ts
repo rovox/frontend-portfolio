@@ -3,7 +3,7 @@ import { SITE_URL } from '../config';
 
 export const prerender = true;
 
-const paths = ['/', '/about'];
+const paths = ['/', '/about/'];
 
 export const GET: APIRoute = () => {
   const lastmod = new Date().toISOString().split('T')[0];

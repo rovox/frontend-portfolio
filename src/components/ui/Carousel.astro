@@ -18,14 +18,15 @@ const carouselId = `carousel-${id}`;
     data-carousel-track
     tabindex="0"
     role="region"
-    aria-label="Carrusel de tarjetas"
+    aria-label="Card carousel"
   >
     <slot />
   </div>
   <div
     class="carousel-indicators"
     data-carousel-indicators
-    aria-hidden="true"
+    role="group"
+    aria-label="Carousel navigation"
   >
   </div>
 </div>
@@ -230,7 +231,7 @@ const carouselId = `carousel-${id}`;
         cards.forEach((_, i) => {
           const dot = document.createElement('button');
           dot.className = 'carousel-dot';
-          dot.setAttribute('aria-label', `Ir a tarjeta ${i + 1}`);
+          dot.setAttribute('aria-label', `Go to card ${i + 1}`);
           dot.addEventListener('click', () => {
             scrollToCard(i);
             pauseAuto();

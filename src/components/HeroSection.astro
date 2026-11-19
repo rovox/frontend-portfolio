@@ -121,8 +121,9 @@ import { CV_URL_EN, CV_FILENAME_EN } from '../config';
       tweens.push(
         gsap.fromTo(
           '.hero-photo',
-          { opacity: 0, scale: 0.85 },
-          { opacity: 1, scale: 1, duration: 0.9, delay: 0.35 },
+          // Keep opacity at 1 so the LCP image paints immediately; animate scale only.
+          { opacity: 1, scale: 0.92 },
+          { opacity: 1, scale: 1, duration: 0.9, ease: 'power3.out' },
         ),
       );
 
