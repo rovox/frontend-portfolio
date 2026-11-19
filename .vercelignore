@@ -1,0 +1,5 @@
+dist
+.wrangler
+.astro
+node_modules
+.opencode
