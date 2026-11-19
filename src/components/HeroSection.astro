@@ -2,21 +2,27 @@
 import SplitText from './effects/SplitText.astro';
 import { Picture } from 'astro:assets';
 import photo from '../assets/profesional_photo.jpg';
-import { CV_URL_EN, CV_FILENAME_EN } from '../config';
+import { CV_URL_EN, CV_URL_ES, CV_FILENAME_EN, CV_FILENAME_ES } from '../config';
+import { useTranslations, localizePath, toLang } from '../i18n/ui';
+
+const lang = toLang(Astro.currentLocale);
+const t = useTranslations(lang);
+const cvUrl = lang === 'es' ? CV_URL_ES : CV_URL_EN;
+const cvFile = lang === 'es' ? CV_FILENAME_ES : CV_FILENAME_EN;
 ---
 
 <section id="home" class="section hero">
   <div class="container hero-container">
 
     <!-- Label -->
-    <p class="hero-label">&lt;Computer Science Engineer /&gt;</p>
+    <p class="hero-label">{t('hero.label')}</p>
 
     <!-- Photo + Name -->
     <div class="hero-main">
       <div class="hero-photo">
         <Picture
           src={photo}
-          alt="Portrait of Jose Roberto Vargas Orellana, software engineer"
+          alt={t('hero.photoAlt')}
           widths={[360, 580, 800]}
           sizes="(max-width: 768px) 80vw, 580px"
           formats={['avif', 'webp']}
@@ -41,20 +47,20 @@ import { CV_URL_EN, CV_FILENAME_EN } from '../config';
             splitBy="words" />
           <span class="scanner-line" aria-hidden="true"></span>
         </h1>
-        <p class="hero-title">Software Engineer</p>
+        <p class="hero-title">{t('hero.title')}</p>
 
         <!-- Action Buttons -->
         <div class="hero-actions">
-          <a href="/#contact" class="btn btn-primary hero-cta-contact">
-            Contact me
+          <a href={`${localizePath('/', lang)}#contact`} class="btn btn-primary hero-cta-contact">
+            {t('hero.contact')}
           </a>
           <a
-            href={CV_URL_EN}
-            download={CV_FILENAME_EN}
+            href={cvUrl}
+            download={cvFile}
             class="btn btn-ghost"
             data-cv-download
           >
-            Download CV
+            {t('hero.download')}
           </a>
         </div>
       </div>
@@ -75,16 +81,16 @@ import { CV_URL_EN, CV_FILENAME_EN } from '../config';
           <span class="prompt-cmd"> cat rovox.md</span>
         </p>
         <p class="terminal-line">
-          <span class="line-hash">#</span> Software Engineer & Data Scientist
+          <span class="line-hash">#</span> {t('hero.t1')}
         </p>
         <p class="terminal-line">
-          <span class="line-hash">#</span> Full Stack Web/Mobile/Desktop
+          <span class="line-hash">#</span> {t('hero.t2')}
         </p>
         <p class="terminal-line">
-          <span class="line-hash">#</span> Bolivia 🇧🇴 | Open Source Advocate
+          <span class="line-hash">#</span> {t('hero.t3')}
         </p>
         <p class="terminal-line terminal-line-last">
-          <span class="line-hash">#</span> Building tools that empower developers
+          <span class="line-hash">#</span> {t('hero.t4')}
         </p>
         <p class="terminal-prompt terminal-prompt-bottom">
           <span class="prompt-arrow">&gt;</span>

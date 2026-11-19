@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 type ToneModule = typeof import('tone');
 
 export default function AudioController() {
+  const es = typeof document !== 'undefined' && document.documentElement.lang === 'es';
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(-12);
   const [isReady, setIsReady] = useState(false);
@@ -287,13 +288,13 @@ export default function AudioController() {
     >
       {needsInteraction && (
         <span style={{ color: 'var(--primary)', fontSize: '0.75rem', marginRight: '0.5rem' }}>
-          🔊 Click for music
+          🔊 {es ? 'Clic para música' : 'Click for music'}
         </span>
       )}
 
       <button
         onClick={togglePlay}
-        aria-label={isPlaying ? 'Pause music' : 'Play music'}
+        aria-label={isPlaying ? (es ? 'Pausar música' : 'Pause music') : (es ? 'Reproducir música' : 'Play music')}
         style={{
           background: 'none',
           border: '1px solid color-mix(in srgb, var(--primary-container) 40%, transparent)',

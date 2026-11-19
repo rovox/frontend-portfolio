@@ -59,3 +59,26 @@ export const glance: ReadonlyArray<{ q: string; a: string }> = [
   { q: 'What does he build?', a: 'Immersive web apps, mobile apps, smart contracts, data/ML projects and 3D experiences.' },
   { q: 'How to get in touch?', a: `Email ${summary.email}, or use the contact form on this site.` },
 ];
+
+const shortEs =
+  'Jose Roberto Vargas Orellana es ingeniero de software y científico de datos de Cochabamba, Bolivia. Construye productos full-stack web, móviles y de escritorio con React, TypeScript, Python y SQL, además de proyectos 3D/WebGL y de machine learning.';
+
+const glanceEs: ReadonlyArray<{ q: string; a: string }> = [
+  { q: '¿Quién es?', a: `${summary.name} — desarrollador de software, científico de datos e ingeniero Full Stack Web/Móvil/Escritorio.` },
+  { q: '¿Dónde está?', a: `${summary.city}, ${summary.country}.` },
+  { q: 'Stack principal', a: 'React, TypeScript, Python, SQL, Three.js/WebGL, GSAP, ML/IA.' },
+  { q: '¿Qué construye?', a: 'Apps web inmersivas, apps móviles, contratos inteligentes, proyectos de datos/ML y experiencias 3D.' },
+  { q: '¿Cómo contactarlo?', a: `Escribe a ${summary.email} o usa el formulario de contacto de este sitio.` },
+];
+
+/** Locale-aware view of the identity summary (EN default, ES under /es/). */
+export function getSummary(locale: string | undefined) {
+  const es = locale === 'es';
+  return {
+    ...summary,
+    lang: es ? 'es' : 'en',
+    short: es ? shortEs : summary.short,
+    glance: es ? glanceEs : glance,
+    cvUrl: es ? summary.cv.es : summary.cv.en,
+  };
+}

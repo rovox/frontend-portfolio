@@ -1,0 +1,67 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import HeroSection from '../HeroSection.astro';
+import SkillsSection from '../SkillsSection.astro';
+import ExperienceSection from '../ExperienceSection.astro';
+import ProjectsSection from '../ProjectsSection.astro';
+import EducationSection from '../EducationSection.astro';
+import LeadershipSection from '../LeadershipSection.astro';
+import ContactSection from '../ContactSection.astro';
+import AtAGlance from '../AtAGlance.astro';
+import Marquee from '../effects/Marquee.astro';
+import LazyTideEffect from '../Hero3D/LazyTideEffect.tsx';
+import { getSummary } from '../../data/summary';
+import { SITE_URL } from '../../config';
+import { useTranslations } from '../../i18n/ui';
+import { getLocalizedCollection } from '../../i18n/content';
+
+// ParallaxLayer removed from hero — the transformed wrapper breaks
+// GSAP position:fixed pinning used by the terminal journey.
+
+const locale = Astro.currentLocale;
+const t = useTranslations(locale);
+const summary = getSummary(locale);
+
+const [skills, experiences, projects, education, leadership] = await Promise.all([
+  getLocalizedCollection('skills', locale),
+  getLocalizedCollection('experiences', locale),
+  getLocalizedCollection('projects', locale),
+  getLocalizedCollection('education', locale),
+  getLocalizedCollection('leadership', locale),
+]);
+
+const techs = [...new Set([...projects, ...experiences].flatMap((e) => e.data.technologies))];
+const half = Math.ceil(techs.length / 2);
+const stats = [
+  { value: experiences.length, suffix: '+', label: t('glance.stat.roles') },
+  { value: projects.length, suffix: '+', label: t('glance.stat.projects') },
+  { value: techs.length, suffix: '+', label: t('glance.stat.tech') },
+  { value: leadership.length, label: t('glance.stat.leadership') },
+];
+---
+
+<Layout
+  title={t('meta.title')}
+  description={summary.short}
+  jsonLd={projects.map((p) => ({
+    '@type': 'CreativeWork',
+    name: p.data.title,
+    description: p.data.description,
+    inLanguage: summary.lang,
+    keywords: p.data.technologies.join(', '),
+    author: { '@id': `${SITE_URL}/#person` },
+    ...(p.data.liveUrl ? { url: p.data.liveUrl } : {}),
+  }))}
+>
+  <LazyTideEffect client:only="react" />
+  <HeroSection />
+  <ExperienceSection items={experiences} />
+  <ProjectsSection items={projects} />
+  <Marquee items={techs.slice(0, half)} label={t('marquee.a')} />
+  <Marquee items={techs.slice(half)} reverse label={t('marquee.b')} />
+  <SkillsSection items={skills} />
+  <EducationSection items={education} />
+  <LeadershipSection items={leadership} />
+  <AtAGlance stats={stats} />
+  <ContactSection />
+</Layout>

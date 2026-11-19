@@ -326,7 +326,7 @@ function cvDownload(): Cleanup {
   const handler = (e: Event) => {
     const link = (e.target as HTMLElement | null)?.closest<HTMLAnchorElement>('[data-cv-download]');
     if (!link) return;
-    toast.textContent = 'Downloading CV…';
+    toast.textContent = document.documentElement.lang === 'es' ? 'Descargando CV…' : 'Downloading CV…';
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       gsap.set(toast, { autoAlpha: 1 });
       gsap.delayedCall(2.5, () => gsap.set(toast, { autoAlpha: 0 }));

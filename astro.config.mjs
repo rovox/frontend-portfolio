@@ -11,6 +11,11 @@ const isVercel = !!process.env.VERCEL;
 // https://astro.build/config
 export default defineConfig({
   site: process.env.PUBLIC_SITE_URL ?? 'https://frontend-portfolio.varor-joseroberto.workers.dev',
+  i18n: {
+    locales: ['en', 'es'],
+    defaultLocale: 'en',
+    routing: { prefixDefaultLocale: false },
+  },
   integrations: [react()],
   // Optimize images at build time (sharp) — no runtime Cloudflare Images binding needed.
   adapter: isVercel ? undefined : cloudflare({ imageService: 'compile' }),

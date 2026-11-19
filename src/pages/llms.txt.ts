@@ -17,6 +17,7 @@ export const GET: APIRoute = async () => {
     '',
     `- [Home](${summary.site}/): experience, projects, skills, education, leadership and contact.`,
     `- [About](${summary.site}/about/): biography and focus areas.`,
+    `- [Versión en español](${summary.site}/es/): the same portfolio in Spanish (also /es/about/).`,
     `- [Full content for LLMs](${summary.site}/llms-full.txt): every project, role and skill in plain text.`,
     '',
     '## Resume',

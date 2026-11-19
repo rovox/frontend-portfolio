@@ -1,8 +1,11 @@
 ---
-import { glance, summary } from '../data/summary';
+import { getSummary } from '../data/summary';
+import { useTranslations } from '../i18n/ui';
 interface Stat { value: number; suffix?: string; label: string }
 interface Props { heading?: string; stats?: Stat[] }
-const { heading = 'At a glance', stats = [] } = Astro.props;
+const t = useTranslations(Astro.currentLocale);
+const summary = getSummary(Astro.currentLocale);
+const { heading = t('glance.title'), stats = [] } = Astro.props;
 ---
 
 <section class="glance container" aria-labelledby="glance-heading">
@@ -19,7 +22,7 @@ const { heading = 'At a glance', stats = [] } = Astro.props;
     </ul>
   )}
   <dl class="glance-list" data-reveal>
-    {glance.map((item) => (
+    {summary.glance.map((item) => (
       <div class="glance-item glass-card card-glow" data-reveal-item>
         <dt>{item.q}</dt>
         <dd>{item.a}</dd>

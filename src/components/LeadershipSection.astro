@@ -1,4 +1,5 @@
 ---
+import { useTranslations } from '../i18n/ui';
 import { render, type CollectionEntry } from 'astro:content';
 import Carousel from './ui/Carousel.astro';
 
@@ -7,6 +8,7 @@ interface Props {
 }
 
 const { items } = Astro.props;
+const t = useTranslations(Astro.currentLocale);
 const rendered = await Promise.all(
   items.map(async (item) => {
     const { Content } = await render(item);
@@ -17,8 +19,8 @@ const rendered = await Promise.all(
 
 <section class="section" id="leadership">
   <div class="container">
-    <h2 class="section-title">&lt;Leadership /&gt;</h2>
-    <p class="section-note">// Community engagement and institutional service</p>
+    <h2 class="section-title">{t('leadership.title')}</h2>
+    <p class="section-note">{t('leadership.note')}</p>
 
     <Carousel id="leadership" cardSelector=".leadership-item">
       {rendered.map((item) => (

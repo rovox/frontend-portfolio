@@ -156,6 +156,14 @@ Lenis se destruye en `astro:before-swap` para evitar leaks.
 
 URL de producción: `PUBLIC_SITE_URL` (por defecto `https://frontend-portfolio.varor-joseroberto.workers.dev`).
 
+## Idiomas (EN / ES)
+
+- Rutas: inglés en `/` y `/about/`; español en `/es/` y `/es/about/` (Astro i18n, `prefixDefaultLocale: false`).
+- Textos de interfaz: `src/i18n/ui.ts` (`useTranslations(Astro.currentLocale)`, `localizePath`, `alternatePath`).
+- Contenido traducido: `src/content/<colección>/es/<slug>.md` (mismo slug que el original). `getLocalizedCollection()` en `src/i18n/content.ts` usa la versión en español y, si falta, cae al inglés.
+- Selector **EN / ES** en la barra de navegación (y en el menú móvil): enlaza a la misma página en el otro idioma.
+- SEO: `hreflang` (en, es, x-default), `og:locale`, sitemap bilingüe y `llms.txt` enlaza la versión en español. El CV descargado cambia según el idioma.
+
 ## Deploy (Cloudflare Workers Builds)
 
 - El repo está conectado a **Cloudflare Workers Builds**: cada push a `master` se construye y despliega automáticamente (sin API token en GitHub). Las demás ramas generan builds de preview.

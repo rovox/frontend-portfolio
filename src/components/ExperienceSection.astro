@@ -1,4 +1,5 @@
 ---
+import { useTranslations } from '../i18n/ui';
 import { render, type CollectionEntry } from 'astro:content';
 import SectionWrapper from './ui/SectionWrapper.astro';
 import Carousel from './ui/Carousel.astro';
@@ -8,6 +9,7 @@ interface Props {
 }
 
 const { items } = Astro.props;
+const t = useTranslations(Astro.currentLocale);
 const rendered = await Promise.all(
   items.map(async (item) => {
     const { Content } = await render(item);
@@ -16,11 +18,11 @@ const rendered = await Promise.all(
 );
 ---
 
-<SectionWrapper id="experience" title="&lt;Experience /&gt;" note="// Professional journey and academic foundations">
+<SectionWrapper id="experience" title={t('experience.title')} note={t('experience.note')}>
   <div class="filter-chips" data-filter-section="experiences">
-    <button class="filter-chip is-active" data-filter="all">All</button>
-    <button class="filter-chip" data-filter="professional">Professional</button>
-    <button class="filter-chip" data-filter="university">University</button>
+    <button class="filter-chip is-active" data-filter="all">{t('filter.all')}</button>
+    <button class="filter-chip" data-filter="professional">{t('filter.professional')}</button>
+    <button class="filter-chip" data-filter="university">{t('filter.university')}</button>
   </div>
 
   <Carousel id="experience" cardSelector=".exp-card">

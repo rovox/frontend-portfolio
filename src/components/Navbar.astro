@@ -3,17 +3,25 @@
 // re-enable the three `<ThemeToggle client:only="react" />` lines below plus
 // the theme init logic in Layout.astro to restore light/dark switching.
 // import ThemeToggle from './ThemeToggle.tsx';
-import { CV_URL_EN, CV_FILENAME_EN } from '../config';
+import { CV_URL_EN, CV_URL_ES, CV_FILENAME_EN, CV_FILENAME_ES } from '../config';
+import { useTranslations, localizePath, alternatePath, toLang } from '../i18n/ui';
 
 const currentPath = Astro.url.pathname;
+const lang = toLang(Astro.currentLocale);
+const t = useTranslations(lang);
+const home = localizePath('/', lang);
+const cvUrl = lang === 'es' ? CV_URL_ES : CV_URL_EN;
+const cvFile = lang === 'es' ? CV_FILENAME_ES : CV_FILENAME_EN;
+const otherLang = lang === 'es' ? 'en' : 'es';
+const switchHref = alternatePath(currentPath, otherLang);
 
 const navLinks = [
-  { href: '/#experience', label: 'Experience' },
-  { href: '/#work', label: 'Work' },
-  { href: '/#skills', label: 'Skills' },
-  { href: '/#education', label: 'Education' },
+  { href: `${home}#experience`, label: t('nav.experience') },
+  { href: `${home}#work`, label: t('nav.work') },
+  { href: `${home}#skills`, label: t('nav.skills') },
+  { href: `${home}#education`, label: t('nav.education') },
   // { href: '/blog/', label: 'Blog' }, // Blog disabled — re-enable with blog feature
-  { href: '/#contact', label: 'Contact' },
+  { href: `${home}#contact`, label: t('nav.contact') },
 ];
 
 function isActive(href: string): boolean {
@@ -28,9 +36,9 @@ function isActive(href: string): boolean {
 }
 ---
 
-<nav class="nav" id="main-nav" aria-label="Main navigation">
+<nav class="nav" id="main-nav" aria-label={t('nav.aria')}>
   <div class="nav-inner">
-    <a href="/" class="nav-logo" aria-label="rovox — homepage" title="portfolio rovox.exe">
+    <a href={home} class="nav-logo" aria-label={t('nav.home')} title="portfolio rovox.exe">
       <img
         src="/images/avatar.webp"
         alt=""
@@ -55,7 +63,20 @@ function isActive(href: string): boolean {
           </a>
         ))
       }
-      <a href={CV_URL_EN} download={CV_FILENAME_EN} data-cv-download class="btn btn-primary nav-resume">Resume</a>
+      <a
+        href={switchHref}
+        class="lang-switch"
+        hreflang={otherLang}
+        lang={otherLang}
+        aria-label={t('lang.switchTo')}
+        title={t('lang.switchTo')}
+        data-lang-switch
+      >
+        <span class:list={['lang-opt', { 'is-current': lang === 'en' }]}>EN</span>
+        <span class="lang-sep" aria-hidden="true">/</span>
+        <span class:list={['lang-opt', { 'is-current': lang === 'es' }]}>ES</span>
+      </a>
+      <a href={cvUrl} download={cvFile} data-cv-download class="btn btn-primary nav-resume">{t('nav.resume')}</a>
       {/* ThemeToggle disabled — dark mode only */}
       {/* <ThemeToggle client:only="react" /> */}
     </div>
@@ -64,7 +85,7 @@ function isActive(href: string): boolean {
       class="nav-toggle"
       id="nav-toggle"
       aria-expanded="false"
-      aria-label="Toggle navigation menu"
+      aria-label={t('nav.toggle')}
       aria-controls="nav-drawer"
     >
       <span class="nav-toggle-icon" aria-hidden="true">&#9776;</span>
@@ -75,10 +96,10 @@ function isActive(href: string): boolean {
   <div class="nav-backdrop" id="nav-backdrop" aria-hidden="true"></div>
 
   <!-- Mobile drawer — compact right-side panel -->
-  <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Navigation menu">
+  <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label={t('nav.drawer')}>
     <div class="nav-drawer-header">
-      <span class="nav-drawer-title" aria-hidden="true">Menu</span>
-      <button class="nav-drawer-close" id="nav-drawer-close" aria-label="Close navigation menu">
+      <span class="nav-drawer-title" aria-hidden="true">{t('nav.menu')}</span>
+      <button class="nav-drawer-close" id="nav-drawer-close" aria-label={t('nav.close')}>
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
@@ -93,7 +114,20 @@ function isActive(href: string): boolean {
           </a>
         ))
       }
-      <a href={CV_URL_EN} download={CV_FILENAME_EN} data-cv-download class="btn btn-primary nav-resume-mobile">Resume</a>
+      <a
+        href={switchHref}
+        class="lang-switch lang-switch--mobile"
+        hreflang={otherLang}
+        lang={otherLang}
+        aria-label={t('lang.switchTo')}
+        title={t('lang.switchTo')}
+        data-lang-switch
+      >
+        <span class:list={['lang-opt', { 'is-current': lang === 'en' }]}>EN</span>
+        <span class="lang-sep" aria-hidden="true">/</span>
+        <span class:list={['lang-opt', { 'is-current': lang === 'es' }]}>ES</span>
+      </a>
+      <a href={cvUrl} download={cvFile} data-cv-download class="btn btn-primary nav-resume-mobile">{t('nav.resume')}</a>
       {/* ThemeToggle disabled — dark mode only */}
       {/* <ThemeToggle client:only="react" /> */}
     </nav>
@@ -198,13 +232,12 @@ function isActive(href: string): boolean {
     // makes ClientRouter bail out (it checks `ev.defaultPrevented`), so the
     // Lenis smooth-scroll below is the only navigation that happens.
     function handleHashLinkClick(e: Event) {
-      const link = (e.target as HTMLElement).closest('a[href^="/#"]') as HTMLAnchorElement | null;
+      const link = (e.target as HTMLElement).closest('a[href*="/#"]') as HTMLAnchorElement | null;
       if (!link) return;
-      if (window.location.pathname !== '/') return;
+      // Only intercept same-page hash links (`/#id` on `/`, `/es/#id` on `/es/`).
+      if (link.pathname !== window.location.pathname) return;
       e.preventDefault();
-      const href = link.getAttribute('href');
-      if (!href) return;
-      const target = document.querySelector(href.replace('/', ''));
+      const target = document.querySelector(link.hash);
       if (!target) return;
       if ((window as any).lenis) {
         (window as any).lenis.scrollTo(target, { offset: -80 });
@@ -241,8 +274,8 @@ function isActive(href: string): boolean {
       // Desktop nav links
       document.querySelectorAll('.nav-link').forEach((link) => {
         const href = link.getAttribute('href');
-        if (href && href.startsWith('/#')) {
-          const active = href === `/#${currentId}`;
+        if (href && href.includes('/#')) {
+          const active = href.endsWith(`#${currentId}`);
           link.classList.toggle('nav-link--active', active);
           if (active) link.setAttribute('aria-current', 'page');
           else link.removeAttribute('aria-current');
@@ -252,8 +285,8 @@ function isActive(href: string): boolean {
       // Mobile drawer links
       document.querySelectorAll('.nav-drawer-link').forEach((link) => {
         const href = link.getAttribute('href');
-        if (href && href.startsWith('/#')) {
-          const active = href === `/#${currentId}`;
+        if (href && href.includes('/#')) {
+          const active = href.endsWith(`#${currentId}`);
           link.classList.toggle('nav-drawer-link--active', active);
         }
       });
@@ -619,5 +652,33 @@ function isActive(href: string): boolean {
     .nav-backdrop {
       transition: none;
     }
+  }
+
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+    transition: border-color var(--transition-fast), color var(--transition-fast);
+  }
+  .lang-switch:hover,
+  .lang-switch:focus-visible {
+    border-color: var(--primary-container);
+    color: var(--text);
+  }
+  .lang-opt.is-current {
+    color: var(--primary-container);
+    font-weight: 700;
+  }
+  .lang-sep { opacity: 0.5; }
+  .lang-switch--mobile {
+    align-self: flex-start;
+    margin-top: 0.5rem;
   }
 </style>

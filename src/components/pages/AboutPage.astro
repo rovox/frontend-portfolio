@@ -1,0 +1,152 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AtAGlance from '../AtAGlance.astro';
+import { getSummary } from '../../data/summary';
+import { SITE_URL } from '../../config';
+import { useTranslations, localizePath } from '../../i18n/ui';
+
+const locale = Astro.currentLocale;
+const t = useTranslations(locale);
+const summary = getSummary(locale);
+const aboutUrl = new URL(localizePath('/about/', locale), SITE_URL).href;
+const skills = ['Python', 'React', 'TypeScript', 'SQL', 'ML/AI'];
+---
+
+<Layout
+	title={t('meta.aboutTitle')}
+	description={`${summary.short} ${t('meta.aboutDesc')}`}
+	type="profile"
+	jsonLd={[{
+		'@type': 'ProfilePage',
+		'@id': `${aboutUrl}#profile`,
+		url: aboutUrl,
+		inLanguage: summary.lang,
+		name: t('meta.aboutTitle'),
+		mainEntity: { '@id': `${SITE_URL}/#person` },
+	}]}
+>
+	<div class="about-container">
+		<h1>{t('about.title')}</h1>
+		<h2 class="about-subtitle">{t('about.subtitle')}</h2>
+
+		<p>{t('about.p1')}</p>
+		<p>{t('about.p2')}</p>
+
+		<div class="about-grid">
+			<div class="about-card">
+				<h3>{t('about.location')}</h3>
+				<p>{summary.city}, {summary.country}</p>
+			</div>
+			<div class="about-card">
+				<h3>{t('about.focus')}</h3>
+				<p>{t('about.focusValue')}</p>
+			</div>
+			<div class="about-card">
+				<h3>{t('about.platforms')}</h3>
+				<p>{t('about.platformsValue')}</p>
+			</div>
+		</div>
+
+		<h3 class="skills-heading">{t('about.core')}</h3>
+		<ul class="skills-list">
+			{skills.map((skill) => <li>{skill}</li>)}
+		</ul>
+	</div>
+	<AtAGlance />
+</Layout>
+
+<style>
+	.about-container {
+		max-width: 1120px;
+		margin: 0 auto;
+		padding: 8rem 1.25rem;
+		min-height: 100vh;
+	}
+
+	h1 {
+		font-size: clamp(2rem, 5vw, 3rem);
+		margin-bottom: 0.5rem;
+		font-family: var(--font-mono);
+	}
+
+	.about-subtitle {
+		font-size: clamp(1.1rem, 3vw, 1.5rem);
+		color: var(--muted);
+		margin-bottom: 2rem;
+		font-family: var(--font-mono);
+		font-weight: 400;
+	}
+
+	p {
+		font-size: 1rem;
+		line-height: 1.7;
+		margin-bottom: 1.5rem;
+		color: var(--text);
+	}
+
+	.about-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1rem;
+		margin: 2rem 0;
+	}
+
+	.about-card {
+		padding: 1.25rem;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		transition: border-color var(--transition-normal), background var(--transition-normal);
+	}
+
+	.about-card:hover {
+		border-color: var(--primary-container);
+		background: rgba(21, 29, 30, 0.85);
+	}
+
+	.about-card h3 {
+		margin: 0 0 0.5rem;
+		color: var(--primary);
+		font-family: var(--font-mono);
+		font-size: 0.9rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.about-card p {
+		margin: 0;
+		color: var(--muted);
+		font-size: 0.95rem;
+	}
+
+	.skills-heading {
+		font-family: var(--font-mono);
+		font-size: 1rem;
+		color: var(--primary);
+		margin: 2rem 0 1rem;
+	}
+
+	.skills-list {
+		list-style: none;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		padding: 0;
+	}
+
+	.skills-list li {
+		padding: 0.45rem 0.85rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		font-family: var(--font-mono);
+		font-size: 0.88rem;
+		color: var(--muted);
+		background: var(--surface);
+		transition: border-color var(--transition-fast), color var(--transition-fast);
+	}
+
+	.skills-list li:hover {
+		border-color: var(--primary);
+		color: var(--primary);
+	}
+</style>
