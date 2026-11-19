@@ -6,8 +6,10 @@ import cloudflare from '@astrojs/cloudflare';
 
 // https://astro.build/config
 export default defineConfig({
+  site: process.env.PUBLIC_SITE_URL ?? 'https://frontend-portfolio.varor-joseroberto.workers.dev',
   integrations: [react()],
-  adapter: cloudflare(),
+  // Optimize images at build time (sharp) — no runtime Cloudflare Images binding needed.
+  adapter: cloudflare({ imageService: 'compile' }),
   vite: {
     ssr: {
       noExternal: ['react', 'react-dom'],

@@ -1,5 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AtAGlance from '../components/AtAGlance.astro';
+import { summary } from '../data/summary';
+import { SITE_URL } from '../config';
 
 const pageTitle = "About Me";
 const identity = {
@@ -13,8 +16,19 @@ const identity = {
 const skills = ["Python", "React", "TypeScript", "SQL", "ML/AI"];
 ---
 
-<Layout title={pageTitle}>
-	<main class="about-container">
+<Layout
+	title={`About | ${summary.name}`}
+	description={`${summary.short} Focus: full-stack development, data science and UI/UX.`}
+	type="profile"
+	jsonLd={[{
+		'@type': 'ProfilePage',
+		'@id': `${SITE_URL}/about#profile`,
+		url: `${SITE_URL}/about`,
+		name: `About ${summary.name}`,
+		mainEntity: { '@id': `${SITE_URL}/#person` },
+	}]}
+>
+	<div class="about-container">
 		<h1>{pageTitle}</h1>
 		<h2 class="about-subtitle">Software Developer &amp; Data Scientist</h2>
 
@@ -48,7 +62,8 @@ const skills = ["Python", "React", "TypeScript", "SQL", "ML/AI"];
 		<ul class="skills-list">
 			{skills.map((skill) => <li>{skill}</li>)}
 		</ul>
-	</main>
+	</div>
+	<AtAGlance />
 </Layout>
 
 <style>
@@ -98,11 +113,6 @@ const skills = ["Python", "React", "TypeScript", "SQL", "ML/AI"];
 	.about-card:hover {
 		border-color: var(--primary-container);
 		background: rgba(21, 29, 30, 0.85);
-	}
-
-	[data-theme="light"] .about-card:hover {
-		background: #ffffff;
-		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 	}
 
 	.about-card h3 {

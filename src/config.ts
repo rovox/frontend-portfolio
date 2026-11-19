@@ -1,10 +1,15 @@
 /** Shared site configuration — single source of truth for external links. */
-export const CV_VIEW_URL_EN =
-  'https://drive.google.com/file/d/1gqySt7wn8fQ9ns-VwbCxuO0EA8FSO40f/view';
-export const CV_DOWNLOAD_URL_EN =
-  'https://drive.google.com/uc?export=download&id=1gqySt7wn8fQ9ns-VwbCxuO0EA8FSO40f';
-export const CV_DOWNLOAD_URL_ES =
-  'https://drive.google.com/uc?export=download&id=14JHO459YUfquQKL0N9k752EABnNbDTNv';
+/** Production origin (override with PUBLIC_SITE_URL at build time). */
+export const SITE_URL = (
+  import.meta.env.PUBLIC_SITE_URL ??
+  'https://frontend-portfolio.varor-joseroberto.workers.dev'
+).replace(/\/$/, '');
+
+/** CV files served from /public. `download` filenames are what the visitor saves. */
+export const CV_URL_EN = '/cv-jose-roberto-vargas-en.pdf';
+export const CV_URL_ES = '/cv-jose-roberto-vargas-es.pdf';
+export const CV_FILENAME_EN = 'Jose-Roberto-Vargas-CV-EN.pdf';
+export const CV_FILENAME_ES = 'Jose-Roberto-Vargas-CV-ES.pdf';
 
 /** Formspree contact form endpoint. */
 export const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xlgqkyed';

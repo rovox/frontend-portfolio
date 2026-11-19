@@ -1,0 +1,28 @@
+---
+import { glance, summary } from '../data/summary';
+interface Props { heading?: string }
+const { heading = 'At a glance' } = Astro.props;
+---
+
+<section class="glance container" aria-labelledby="glance-heading">
+  <h2 id="glance-heading" class="glance-title">{heading}</h2>
+  <p class="glance-summary">{summary.short}</p>
+  <dl class="glance-list">
+    {glance.map((item) => (
+      <div class="glance-item">
+        <dt>{item.q}</dt>
+        <dd>{item.a}</dd>
+      </div>
+    ))}
+  </dl>
+</section>
+
+<style>
+  .glance { padding-block: 3rem; }
+  .glance-title { font-family: var(--font-mono); font-size: var(--fs-headline-md); margin-bottom: 0.75rem; }
+  .glance-summary { max-width: 70ch; color: var(--text); line-height: 1.7; margin-bottom: 1.5rem; }
+  .glance-list { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .glance-item { padding: 1rem 1.25rem; border: 1px solid var(--outline-variant, rgba(255,255,255,0.12)); border-radius: var(--radius-lg, 12px); }
+  dt { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.35rem; }
+  dd { margin: 0; line-height: 1.5; }
+</style>

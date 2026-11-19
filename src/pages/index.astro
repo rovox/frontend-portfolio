@@ -9,6 +9,9 @@ import EducationSection from '../components/EducationSection.astro';
 import LeadershipSection from '../components/LeadershipSection.astro';
 /* import LatestPosts from '../components/LatestPosts.astro'; */  // Blog disabled — see specs/bugfix-a11y-splash-round1.md
 import ContactSection from '../components/ContactSection.astro';
+import AtAGlance from '../components/AtAGlance.astro';
+import { summary } from '../data/summary';
+import { SITE_URL } from '../config';
 import LazyTideEffect from '../components/Hero3D/LazyTideEffect.tsx';
 // ParallaxLayer removed from hero — the transformed wrapper breaks
 // GSAP position:fixed pinning used by the terminal journey.
@@ -30,9 +33,21 @@ const leadership = await getCollection('leadership');
 leadership.sort((a, b) => a.data.order - b.data.order);
 ---
 
-<Layout title="Jose Roberto Vargas Orellana | Portfolio">
+<Layout
+  title={`${summary.name} | ${summary.role} Portfolio`}
+  description={summary.short}
+  jsonLd={projects.map((p) => ({
+    '@type': 'CreativeWork',
+    name: p.data.title,
+    description: p.data.description,
+    keywords: p.data.technologies.join(', '),
+    author: { '@id': `${SITE_URL}/#person` },
+    ...(p.data.liveUrl ? { url: p.data.liveUrl } : {}),
+  }))}
+>
   <LazyTideEffect client:only="react" />
   <HeroSection />
+  <AtAGlance />
   <ExperienceSection items={experiences} />
   <ProjectsSection items={projects} />
   <SkillsSection items={skills} />
