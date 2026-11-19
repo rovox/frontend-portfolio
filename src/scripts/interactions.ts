@@ -281,28 +281,37 @@ function marquee(): Cleanup {
 
 /* ── 7. Staggered 3D reveal ([data-reveal] > [data-reveal-item]) ─────── */
 function reveals(): Cleanup {
-  const tweens: gsap.core.Tween[] = [];
+  const triggers: ScrollTrigger[] = [];
+  const all: HTMLElement[] = [];
   document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((group) => {
-    const items = group.querySelectorAll<HTMLElement>('[data-reveal-item]');
+    const items = [...group.querySelectorAll<HTMLElement>('[data-reveal-item]')];
     if (!items.length) return;
-    tweens.push(
-      gsap.from(items, {
-        opacity: 0,
-        y: 40,
-        rotateX: -12,
-        transformPerspective: 800,
-        stagger: 0.08,
-        duration: 0.9,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: group, start: 'top 80%', once: true },
+    // Only hide content that is still below the fold — never blank out what's on screen.
+    if (group.getBoundingClientRect().top < window.innerHeight * 0.85) return;
+    all.push(...items);
+    gsap.set(items, { opacity: 0, y: 40, rotationX: -12, transformPerspective: 800 });
+    triggers.push(
+      ScrollTrigger.create({
+        trigger: group,
+        start: 'top 85%',
+        once: true,
+        onEnter: () =>
+          gsap.to(items, {
+            opacity: 1,
+            y: 0,
+            rotationX: 0,
+            stagger: 0.08,
+            duration: 0.9,
+            ease: 'power3.out',
+            overwrite: 'auto',
+          }),
       }),
     );
   });
-  return () =>
-    tweens.forEach((t) => {
-      t.scrollTrigger?.kill();
-      t.revert();
-    });
+  return () => {
+    triggers.forEach((t) => t.kill());
+    gsap.set(all, { opacity: 1, y: 0, rotationX: 0 });
+  };
 }
 
 /* ── 8. CV download feedback + live-region toast ─────────────────────── */
@@ -351,11 +360,21 @@ defineModule('interactions', () => {
     return () => cleanups.forEach((c) => c());
   });
 
-  // Images change layout height; refresh trigger positions once they settle.
-  const refresh = () => ScrollTrigger.refresh();
+  // Layout shifts after init (images, fonts, hero pin spacers created on preloader:done)
+  // leave trigger start positions stale; refresh once things settle.
+  const timers: number[] = [];
+  const refresh = () => {
+    // Twice: once soon, once after the hero has built its pins.
+    timers.push(window.setTimeout(() => ScrollTrigger.refresh(), 150));
+    timers.push(window.setTimeout(() => ScrollTrigger.refresh(), 1500));
+  };
   window.addEventListener('load', refresh, { once: true });
+  window.addEventListener('preloader:done', refresh);
+  document.fonts?.ready.then(refresh);
 
   return () => {
+    timers.forEach((t) => window.clearTimeout(t));
+    window.removeEventListener('preloader:done', refresh);
     window.removeEventListener('load', refresh);
     offCv();
     mm.revert();
