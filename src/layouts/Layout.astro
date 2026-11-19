@@ -1,26 +1,35 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import SEO from '../components/SEO.astro';
 import Navbar from '../components/Navbar.astro';
 import AudioController from '../components/AudioController.tsx';
 import LoadingScreen from '../components/LoadingScreen.astro';
 import ScrollProgressBar from '../components/effects/ScrollProgressBar';
 import ScrollInactivityHint from '../components/effects/ScrollInactivityHint';
 
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/500.css';
-import '@fontsource/inter/600.css';
-import '@fontsource/inter/700.css';
-import '@fontsource/inter/800.css';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/500.css';
-import '@fontsource/jetbrains-mono/600.css';
-import '@fontsource/jetbrains-mono/700.css';
+import '@fontsource/inter/latin-400.css';
+import '@fontsource/inter/latin-500.css';
+import '@fontsource/inter/latin-600.css';
+import '@fontsource/inter/latin-700.css';
+import '@fontsource/inter/latin-800.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/jetbrains-mono/latin-500.css';
+import '@fontsource/jetbrains-mono/latin-600.css';
+import '@fontsource/jetbrains-mono/latin-700.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource/jersey-10-charted/latin-400.css';
 
 interface Props {
   title: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'profile' | 'article';
+  jsonLd?: Record<string, unknown>[];
 }
 
-const { title } = Astro.props;
+const { title, description, image, type, jsonLd } = Astro.props;
 ---
 
 <html lang="en">
@@ -29,11 +38,7 @@ const { title } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="description" content="Jose Roberto Vargas Orellana — Software Developer, Data Scientist, Full Stack Web/Mobile/Desktop. Immersive portfolio." />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Jersey+10+Charted&display=swap" rel="stylesheet" />
+    <SEO {title} {description} {image} {type} {jsonLd} />
 
     <script is:inline>
       (function() {
@@ -48,7 +53,6 @@ const { title } = Astro.props;
         document.documentElement.setAttribute('data-theme', 'dark');
       })();
     </script>
-    <title>{title}</title>
     <ClientRouter />
   </head>
   <body>
@@ -73,6 +77,11 @@ const { title } = Astro.props;
       let tickerFn: ((time: number) => void) | null = null;
 
       function startScroll() {
+        // Reduced motion: keep native scrolling (no smooth-scroll hijack).
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          ScrollTrigger.refresh();
+          return;
+        }
         lenis = new Lenis({
           duration: 1.2,
           easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -517,10 +526,6 @@ const { title } = Astro.props;
     background: rgba(0, 242, 255, 0.08);
   }
 
-  [data-theme="light"] .filter-chip.is-active {
-    background: rgba(0, 194, 204, 0.08);
-  }
-
   .filter-item {
     transition: opacity 0.3s ease, transform 0.3s ease;
   }
@@ -530,182 +535,10 @@ const { title } = Astro.props;
   }
 
   /* ─── Dawn Protocol — Light theme overrides ─── */
-  :root[data-theme="light"] {
-    --bg: #faf6f1;
-    --surface: rgba(255, 255, 255, 0.82);
-    --surface-high: #ebe5de;
-    --surface-container: #f8f3ee;
-    --surface-container-low: #f0eae4;
-    --surface-container-lowest: #e7e0d8;
-    --surface-bright: #ffffff;
-    --surface-dim: #ebe4dc;
-    --text: #172033;
-    --muted: #516274;
-    --primary: #0c4a6e;
-    --primary-container: #0e7490;
-    --on-primary: #ffffff;
-    --on-primary-container: #ffffff;
-    --secondary: #475569;
-    --on-secondary: #f8fafc;
-    --secondary-container: #e2e8f0;
-    --outline: #7b8a9e;
-    --outline-variant: #c5d0db;
-    --border: rgba(12, 74, 110, 0.14);
-    --error: #b91c1c;
-    --surface-tint: #00a8b5;
-
-    /* Accent */
-    --accent: #6d28d9;
-  }
-
   /* Light mode elevated cards (no glassmorphism) */
-  :root[data-theme="light"] .glass-card {
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(12, 74, 110, 0.12);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 4px 24px rgba(0, 0, 0, 0.04);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  :root[data-theme="light"] .glass-card:hover {
-    border-color: var(--primary-container);
-    background: #ffffff;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.06);
-  }
-
-  :root[data-theme="light"] .skip-link {
-    background: var(--primary-container);
-    color: var(--on-primary);
-  }
-
-  :root[data-theme="light"] .btn-primary {
-    color: var(--primary);
-  }
-  :root[data-theme="light"] .btn-primary:hover {
-    color: var(--on-primary);
-    background: rgba(14, 116, 144, 0.14);
-  }
-
-  :root[data-theme="light"] .card-glow:hover {
-    background: #ffffff;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.06);
-  }
-
-  :root[data-theme="light"] .btn-ghost:hover {
-    color: var(--primary);
-    border-color: var(--outline-variant);
-    background: rgba(14, 116, 144, 0.08);
-  }
-
   /* ─── Light mode: Navbar always stays dark ─── */
-  :root[data-theme="light"] .nav {
-    background: rgba(13, 21, 21, 0.78);
-    border-bottom: 1px solid rgba(0, 242, 255, 0.14);
-  }
-
-  :root[data-theme="light"] .nav-logo {
-    color: #e1fdff;
-  }
-
-  :root[data-theme="light"] .nav-links {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(0, 242, 255, 0.08);
-  }
-
-  :root[data-theme="light"] .nav-link {
-    color: #b9cacb;
-  }
-
-  :root[data-theme="light"] .nav-link:hover {
-    color: #00f2ff;
-  }
-
-  :root[data-theme="light"] .nav-link--active {
-    color: #e1fdff;
-  }
-
-  :root[data-theme="light"] .nav-link--active::before {
-    color: #00f2ff;
-  }
-
-  :root[data-theme="light"] .nav-resume {
-    color: #00f2ff;
-    border-color: #00f2ff;
-  }
-
-  :root[data-theme="light"] .nav-resume:hover {
-    color: #dce4e4;
-    background: rgba(0, 242, 255, 0.1);
-  }
-
-  :root[data-theme="light"] .nav-drawer {
-    background: rgba(13, 21, 21, 0.96);
-  }
-
-  :root[data-theme="light"] .nav-drawer-title {
-    color: #b9cacb;
-  }
-
-  :root[data-theme="light"] .nav-drawer-link {
-    color: #b9cacb;
-  }
-
-  :root[data-theme="light"] .nav-drawer-link:hover {
-    color: #00f2ff;
-  }
-
-  :root[data-theme="light"] .nav-drawer-link--active {
-    color: #e1fdff;
-  }
-
-  :root[data-theme="light"] .nav-drawer-link--active::before {
-    color: #00f2ff;
-  }
-
-  :root[data-theme="light"] .nav-resume-mobile {
-    color: #00f2ff;
-    border-color: #00f2ff;
-  }
-
-  :root[data-theme="light"] .nav-resume-mobile:hover {
-    color: #dce4e4;
-    background: rgba(0, 242, 255, 0.1);
-  }
-
-  :root[data-theme="light"] .nav-toggle {
-    color: #b9cacb;
-    border-color: rgba(0, 242, 255, 0.18);
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  :root[data-theme="light"] .nav-toggle:hover {
-    background: #ffffff;
-    color: #0d1515;
-    border-color: #ffffff;
-  }
-
-  :root[data-theme="light"] .nav-drawer-close {
-    color: #b9cacb;
-    border-color: rgba(0, 242, 255, 0.12);
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  :root[data-theme="light"] .nav-drawer-close:hover {
-    background: #ffffff;
-    color: #0d1515;
-    border-color: #ffffff;
-  }
-
   /* Light mode: terminal titlebar */
-  :root[data-theme="light"] .terminal-titlebar {
-    background: rgba(0, 0, 0, 0.05);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  }
-
   /* Light mode: terminal body text */
-  :root[data-theme="light"] .terminal-body {
-    color: var(--text);
-  }
-
   /* Transition all theme-aware properties */
   @media (prefers-reduced-motion: no-preference) {
     html,

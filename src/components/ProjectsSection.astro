@@ -38,7 +38,7 @@ function repoName(url: string): string {
     {items.map((project) => (
       <Card as="article" glow class="filter-item project-card glass-card card-glow" data-tags={project.data.tags.join(' ')}>
         {project.data.preview && (
-          <img src={project.data.preview} alt="" class="project-preview" loading="lazy" decoding="async" />
+          <img src={project.data.preview} alt="" class="project-preview" width="960" height="458" loading="lazy" decoding="async" />
         )}
         <Tag variant="primary">{project.data.category.toUpperCase()}</Tag>
         <h3>{project.data.title}</h3>
@@ -275,10 +275,6 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
 
   .project-btn:hover {
     box-shadow: 0 0 14px rgba(0, 242, 255, 0.25);
-  }
-
-  [data-theme="light"] .project-btn:hover {
-    box-shadow: 0 0 14px rgba(14, 116, 144, 0.18);
   }
 
   .project-btn svg {

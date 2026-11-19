@@ -1,6 +1,8 @@
 ---
 import SplitText from './effects/SplitText.astro';
-import { CV_DOWNLOAD_URL_EN } from '../config';
+import { Picture } from 'astro:assets';
+import photo from '../assets/profesional_photo.jpg';
+import { CV_URL_EN, CV_FILENAME_EN } from '../config';
 ---
 
 <section id="home" class="section hero">
@@ -11,15 +13,16 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
 
     <!-- Photo + Name -->
     <div class="hero-main">
-      <div
-        class="hero-photo"
-        role="img"
-        aria-label="Profile photo of ROVOX - Software Engineer"
-      >
-        <img
-          src="/images/profesional_photo.png"
-          alt="Jose Roberto Vargas Orellana - Software Engineer"
+      <div class="hero-photo">
+        <Picture
+          src={photo}
+          alt="Portrait of Jose Roberto Vargas Orellana, software engineer"
+          widths={[360, 580, 800]}
+          sizes="(max-width: 768px) 80vw, 580px"
+          formats={['avif', 'webp']}
+          fallbackFormat="jpg"
           loading="eager"
+          fetchpriority="high"
           decoding="async"
         />
       </div>
@@ -46,10 +49,10 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
             Contact me
           </a>
           <a
-            href={CV_DOWNLOAD_URL_EN}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={CV_URL_EN}
+            download={CV_FILENAME_EN}
             class="btn btn-ghost"
+            data-cv-download
           >
             Download CV
           </a>
@@ -383,7 +386,11 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
     position: relative;
   }
 
-  .hero-photo img {
+  .hero-photo :global(picture) {
+    display: block;
+  }
+
+  .hero-photo :global(img) {
     width: 100%;
     height: auto;
   }
@@ -604,18 +611,4 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
   }
 
   /* ── Light mode contrast overrides ── */
-  [data-theme="light"] .hero-label {
-    color: var(--primary);
-  }
-
-  [data-theme="light"] .prompt-arrow,
-  [data-theme="light"] .line-hash,
-  [data-theme="light"] .cursor-blink {
-    color: var(--primary-container);
-  }
-
-  [data-theme="light"] .scanner-line {
-    background: var(--primary-container);
-  }
-
 </style>

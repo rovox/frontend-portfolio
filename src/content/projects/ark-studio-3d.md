@@ -9,7 +9,7 @@ technologies:
   - React
   - Vite
 liveUrl: http://arkmusic.studio/
-preview: /previews/arkmusic3d.png
+preview: /previews/arkmusic3d.webp
 category: web
 order: 1
 tags: [web]

@@ -327,21 +327,6 @@ import { FORMSPREE_ENDPOINT, GITHUB_URL, LINKEDIN_URL, MEDIUM_URL } from '../con
   }
 
   /* Light theme form overrides */
-  [data-theme="light"] .form-field input,
-  [data-theme="light"] .form-field textarea {
-    background: #ffffff;
-    border-color: var(--outline-variant);
-    color: var(--text);
-  }
-
-  [data-theme="light"] .form-field input:focus,
-  [data-theme="light"] .form-field textarea:focus {
-    border-color: var(--primary-container);
-    box-shadow:
-      0 0 0 3px color-mix(in srgb, var(--primary-container) 18%, transparent),
-      0 0 16px color-mix(in srgb, var(--primary-container) 10%, transparent);
-  }
-
   /* ── Social Links (inside CTA card) ── */
   .cta-socials {
     display: flex;
@@ -365,10 +350,6 @@ import { FORMSPREE_ENDPOINT, GITHUB_URL, LINKEDIN_URL, MEDIUM_URL } from '../con
   .cta-social-link:hover {
     background: rgba(0, 242, 255, 0.1);
     color: var(--primary);
-  }
-
-  [data-theme="light"] .cta-social-link:hover {
-    background: rgba(14, 116, 144, 0.08);
   }
 
   .cta-social-link:focus-visible {
