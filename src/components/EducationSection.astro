@@ -1,6 +1,7 @@
 ---
 import { render, type CollectionEntry } from 'astro:content';
 import SectionWrapper from './ui/SectionWrapper.astro';
+import Carousel from './ui/Carousel.astro';
 
 interface Props {
   items: CollectionEntry<'education'>[];
@@ -16,7 +17,7 @@ const rendered = await Promise.all(
 ---
 
 <SectionWrapper id="education" title="&lt;Education /&gt;" note="// Academic foundations and continuous learning">
-  <div class="education-grid">
+  <Carousel id="education" cardSelector=".education-card">
     {rendered.map((edu) => (
       <article class="glass-card card-glow education-card">
         <h3 class="edu-institution">{edu.data.institution}</h3>
@@ -27,7 +28,7 @@ const rendered = await Promise.all(
         </div>
       </article>
     ))}
-  </div>
+  </Carousel>
 </SectionWrapper>
 
 <script>
@@ -40,18 +41,17 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
 
     function init() {
       if (prefersReducedMotion()) {
-        gsap.set('.education-card', { opacity: 1, y: 0 });
+        gsap.set('#education .carousel-root', { opacity: 1, y: 0 });
         return;
       }
 
-      const cardsTween = gsap.fromTo(
-        '.education-card',
-        { opacity: 0, y: 40 },
+      const tween = gsap.fromTo(
+        '#education .carousel-root',
+        { opacity: 0, y: 30 },
         {
           opacity: 1,
           y: 0,
           duration: 0.7,
-          stagger: 0.12,
           ease: 'power3.out',
           scrollTrigger: {
             trigger: '#education',
@@ -60,7 +60,7 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
           },
         }
       );
-      if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+      if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
     }
 
     if ((window as any).__portfolioLoaderDone) {
@@ -81,12 +81,6 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
 </script>
 
 <style>
-  .education-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
-
   .education-card {
     padding: 1.5rem;
     opacity: 1;
@@ -137,17 +131,5 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
     border: 1px solid var(--outline-variant);
     border-radius: var(--radius-md);
     line-height: 1.5;
-  }
-
-  @media (min-width: 720px) {
-    .education-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 1040px) {
-    .education-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
   }
 </style>

@@ -1,0 +1,466 @@
+---
+interface Props {
+  id: string;
+  cardSelector: string;
+}
+
+const { id, cardSelector } = Astro.props;
+const carouselId = `carousel-${id}`;
+---
+
+<div
+  class="carousel-root"
+  data-carousel={carouselId}
+  data-card-selector={cardSelector}
+>
+  <div
+    class="carousel-track"
+    data-carousel-track
+    tabindex="0"
+    role="region"
+    aria-label="Carrusel de tarjetas"
+  >
+    <slot />
+  </div>
+  <div
+    class="carousel-indicators"
+    data-carousel-indicators
+    aria-hidden="true"
+  >
+  </div>
+</div>
+
+<style>
+  .carousel-root {
+    position: relative;
+    width: 100%;
+  }
+
+  .carousel-track {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0.25rem 0;
+    outline: none;
+  }
+
+  .carousel-track:focus-visible {
+    outline: 2px solid var(--primary-container);
+    outline-offset: 4px;
+    border-radius: var(--radius-md);
+  }
+
+  .carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /*
+   * Card sizing — 3 cards visible on desktop, 2 on tablet, 1 on mobile.
+   */
+  .carousel-track > :global(*) {
+    flex: 0 0 85vw;
+    scroll-snap-align: start;
+    transition:
+      filter 0.4s ease,
+      box-shadow 0.4s ease,
+      border-color 0.4s ease;
+  }
+
+  @media (min-width: 720px) {
+    .carousel-track > :global(*) {
+      flex: 0 0 48vw;
+    }
+  }
+
+  @media (min-width: 1040px) {
+    .carousel-track > :global(*) {
+      flex: 0 0 330px;
+    }
+  }
+
+  /*
+   * Active card: full brightness, neon cyan border + dual glow.
+   */
+  .carousel-track > :global(*)[data-active] {
+    filter: brightness(1) saturate(1);
+    border-color: var(--primary-container) !important;
+    box-shadow:
+      0 0 24px rgba(0, 242, 255, 0.18),
+      0 0 60px rgba(0, 242, 255, 0.06);
+  }
+
+  /*
+   * Inactive cards: dimmed and slightly desaturated.
+   */
+  .carousel-track > :global(*):not([data-active]) {
+    filter: brightness(0.5) saturate(0.55);
+    border-color: var(--border) !important;
+    box-shadow: none;
+  }
+
+  /* ── Indicators ────────────────────────────────── */
+
+  .carousel-indicators {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.625rem;
+    margin-top: 1.25rem;
+    min-height: 2rem;
+  }
+
+  .carousel-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--outline-variant);
+    background: transparent;
+    cursor: pointer;
+    padding: 0.375rem;
+    background-clip: content-box;
+    transition:
+      background 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.3s ease;
+    /* Enlarge tap target without changing visual size */
+    position: relative;
+  }
+
+  .carousel-dot::after {
+    content: '';
+    position: absolute;
+    inset: -0.5rem;
+  }
+
+  .carousel-dot:focus-visible {
+    outline: 2px solid var(--primary-container);
+    outline-offset: 2px;
+  }
+
+  .carousel-dot.active {
+    background: var(--primary-container);
+    border-color: var(--primary-container);
+    box-shadow: 0 0 12px rgba(0, 242, 255, 0.55);
+    transform: scale(1.3);
+    animation: carousel-dot-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes carousel-dot-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 12px rgba(0, 242, 255, 0.55);
+    }
+    50% {
+      box-shadow: 0 0 22px rgba(0, 242, 255, 0.75);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-dot.active {
+      animation: none;
+    }
+
+    .carousel-track {
+      scroll-behavior: auto;
+    }
+  }
+</style>
+
+<script>
+  import { defineModule } from '../../utils/lifecycle';
+  import { prefersReducedMotion } from '../../utils/reduced-motion';
+
+  // Query all carousel instances on the page (script is deduped by Vite).
+  const roots = document.querySelectorAll<HTMLElement>('[data-carousel]');
+
+  roots.forEach((root) => {
+    const moduleId = root.getAttribute('data-carousel');
+    const track = root.querySelector<HTMLElement>('[data-carousel-track]');
+    const indicators = root.querySelector<HTMLElement>(
+      '[data-carousel-indicators]',
+    );
+    const selector = root.dataset.cardSelector || '';
+
+    if (!moduleId || !track || !indicators || !selector) return;
+
+    defineModule(moduleId, () => {
+      let activeIndex = 0;
+      let autoInterval: ReturnType<typeof setInterval> | null = null;
+      let pauseTimer: ReturnType<typeof setTimeout> | null = null;
+      let isAutoScrolling = false;
+      let settleTimer: ReturnType<typeof setTimeout> | null = null;
+
+      /* ── Card helpers ─────────────────────────────── */
+
+      function getVisibleCards(): HTMLElement[] {
+        return Array.from(
+          track!.querySelectorAll<HTMLElement>(selector),
+        ).filter(
+          (c) =>
+            !c.classList.contains('is-hidden') &&
+            c.offsetParent !== null,
+        );
+      }
+
+      function findClosestCard(cards?: HTMLElement[]): number {
+        const list = cards ?? getVisibleCards();
+        if (list.length === 0 || !track) return 0;
+        const trackLeft = track.scrollLeft;
+        let closest = 0;
+        let closestDist = Infinity;
+        list.forEach((card, i) => {
+          const dist = Math.abs(card.offsetLeft - trackLeft);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closest = i;
+          }
+        });
+        return closest;
+      }
+
+      /* ── UI updates ───────────────────────────────── */
+
+      function buildDots(cards: HTMLElement[]) {
+        indicators!.innerHTML = '';
+        cards.forEach((_, i) => {
+          const dot = document.createElement('button');
+          dot.className = 'carousel-dot';
+          dot.setAttribute('aria-label', `Ir a tarjeta ${i + 1}`);
+          dot.addEventListener('click', () => {
+            scrollToCard(i);
+            pauseAuto();
+          });
+          indicators!.appendChild(dot);
+        });
+      }
+
+      function updateDots(idx: number) {
+        const dots =
+          indicators!.querySelectorAll('.carousel-dot');
+        dots.forEach((d, i) =>
+          d.classList.toggle('active', i === idx),
+        );
+      }
+
+      function updateActiveCard(idx: number) {
+        const cards = getVisibleCards();
+        cards.forEach((c, i) => {
+          if (i === idx) c.setAttribute('data-active', '');
+          else c.removeAttribute('data-active');
+        });
+        updateDots(idx);
+      }
+
+      /* ── Scroll control ───────────────────────────── */
+
+      function scrollToCard(idx: number) {
+        const cards = getVisibleCards();
+        if (idx < 0 || idx >= cards.length || cards.length === 0) return;
+
+        isAutoScrolling = true;
+        const target = cards[idx];
+        track!.scrollTo({
+          left: target.offsetLeft,
+          behavior: 'smooth',
+        });
+
+        const settle = () => {
+          isAutoScrolling = false;
+          const snapped = findClosestCard();
+          activeIndex = snapped;
+          updateActiveCard(snapped);
+        };
+
+        track!.addEventListener('scrollend', settle, {
+          once: true,
+        });
+        if (settleTimer) clearTimeout(settleTimer);
+        settleTimer = setTimeout(() => {
+          track!.removeEventListener('scrollend', settle);
+          if (isAutoScrolling) settle();
+        }, 800);
+      }
+
+      function nextCard() {
+        const cards = getVisibleCards();
+        if (cards.length <= 1) return;
+        const next = (activeIndex + 1) % cards.length;
+        activeIndex = next;
+        updateActiveCard(next);
+        scrollToCard(next);
+      }
+
+      function prevCard() {
+        const cards = getVisibleCards();
+        if (cards.length <= 1) return;
+        const prev =
+          (activeIndex - 1 + cards.length) % cards.length;
+        activeIndex = prev;
+        updateActiveCard(prev);
+        scrollToCard(prev);
+      }
+
+      /* ── Auto-advance ─────────────────────────────── */
+
+      function startAuto() {
+        if (prefersReducedMotion()) return;
+        stopAuto();
+        const cards = getVisibleCards();
+        if (cards.length <= 1) return;
+        autoInterval = setInterval(nextCard, 4_000);
+      }
+
+      function stopAuto() {
+        if (autoInterval) {
+          clearInterval(autoInterval);
+          autoInterval = null;
+        }
+      }
+
+      function pauseAuto() {
+        stopAuto();
+        if (pauseTimer) clearTimeout(pauseTimer);
+        pauseTimer = setTimeout(() => {
+          startAuto();
+        }, 10_000);
+      }
+
+      /* ── Full refresh (filter / resize) ───────────── */
+
+      function refresh() {
+        const cards = getVisibleCards();
+        buildDots(cards);
+        if (activeIndex >= cards.length) {
+          activeIndex = Math.max(0, cards.length - 1);
+        }
+        const snapped = findClosestCard(cards);
+        activeIndex = snapped;
+        updateActiveCard(snapped);
+      }
+
+      /* ── Keyboard navigation ──────────────────────── */
+
+      function onKeyDown(e: KeyboardEvent) {
+        // Only handle if the carousel root has focus or contains the active element
+        const focused = document.activeElement;
+        if (
+          focused !== track &&
+          !track!.contains(focused) &&
+          focused !== root
+        )
+          return;
+
+        switch (e.key) {
+          case 'ArrowRight':
+            e.preventDefault();
+            stopAuto();
+            nextCard();
+            pauseAuto();
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            stopAuto();
+            prevCard();
+            pauseAuto();
+            break;
+          case 'Home':
+            e.preventDefault();
+            stopAuto();
+            scrollToCard(0);
+            pauseAuto();
+            break;
+          case 'End':
+            e.preventDefault();
+            stopAuto();
+            scrollToCard(getVisibleCards().length - 1);
+            pauseAuto();
+            break;
+        }
+      }
+
+      track!.addEventListener('keydown', onKeyDown);
+
+      /* ── Event listeners ──────────────────────────── */
+
+      // Click on a card → select + pause
+      track!.addEventListener('click', (e) => {
+        const card = (e.target as HTMLElement).closest(selector);
+        if (card && !card.classList.contains('is-hidden')) {
+          // Find index of clicked card and scroll to it
+          const cards = getVisibleCards();
+          const idx = cards.indexOf(card as HTMLElement);
+          if (idx !== -1 && idx !== activeIndex) {
+            stopAuto();
+            activeIndex = idx;
+            updateActiveCard(idx);
+            scrollToCard(idx);
+          }
+          pauseAuto();
+        }
+      });
+
+      // Touch / pointer down on track → pause
+      track!.addEventListener('pointerdown', () => {
+        pauseAuto();
+      });
+
+      // Manual scroll detection (ignore auto-scroll events)
+      track!.addEventListener('scroll', () => {
+        if (isAutoScrolling) return;
+        if (settleTimer) clearTimeout(settleTimer);
+        settleTimer = setTimeout(() => {
+          const snapped = findClosestCard();
+          if (snapped !== activeIndex) {
+            activeIndex = snapped;
+            updateActiveCard(snapped);
+            pauseAuto();
+          }
+        }, 180);
+      });
+
+      // Watch for filter class changes on cards
+      const filterObserver = new MutationObserver(() => {
+        refresh();
+        stopAuto();
+        if (!prefersReducedMotion()) startAuto();
+      });
+      filterObserver.observe(track!, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ['class'],
+      });
+
+      /* ── Init ─────────────────────────────────────── */
+
+      function init() {
+        refresh();
+        if (!prefersReducedMotion()) {
+          startAuto();
+        }
+      }
+
+      if ((window as any).__portfolioLoaderDone) {
+        init();
+      } else {
+        window.addEventListener('preloader:done', init, {
+          once: true,
+        });
+      }
+
+      /* ── Cleanup ──────────────────────────────────── */
+
+      return () => {
+        stopAuto();
+        if (pauseTimer) clearTimeout(pauseTimer);
+        if (settleTimer) clearTimeout(settleTimer);
+        filterObserver.disconnect();
+        track!.removeEventListener('keydown', onKeyDown);
+      };
+    });
+  });
+</script>
