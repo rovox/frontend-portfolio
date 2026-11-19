@@ -1,25 +1,34 @@
 ---
 import SplitText from './effects/SplitText.astro';
-import { CV_DOWNLOAD_URL_EN } from '../config';
+import { Picture } from 'astro:assets';
+import photo from '../assets/profesional_photo.jpg';
+import { CV_URL_EN, CV_URL_ES, CV_FILENAME_EN, CV_FILENAME_ES } from '../config';
+import { useTranslations, localizePath, toLang } from '../i18n/ui';
+
+const lang = toLang(Astro.currentLocale);
+const t = useTranslations(lang);
+const cvUrl = lang === 'es' ? CV_URL_ES : CV_URL_EN;
+const cvFile = lang === 'es' ? CV_FILENAME_ES : CV_FILENAME_EN;
 ---
 
 <section id="home" class="section hero">
   <div class="container hero-container">
 
     <!-- Label -->
-    <p class="hero-label">&lt;Computer Science Engineer /&gt;</p>
+    <p class="hero-label">{t('hero.label')}</p>
 
     <!-- Photo + Name -->
     <div class="hero-main">
-      <div
-        class="hero-photo"
-        role="img"
-        aria-label="Profile photo of ROVOX - Software Engineer"
-      >
-        <img
-          src="/images/profesional_photo.png"
-          alt="Jose Roberto Vargas Orellana - Software Engineer"
+      <div class="hero-photo">
+        <Picture
+          src={photo}
+          alt={t('hero.photoAlt')}
+          widths={[360, 580, 800]}
+          sizes="(max-width: 768px) 80vw, 580px"
+          formats={['avif', 'webp']}
+          fallbackFormat="jpg"
           loading="eager"
+          fetchpriority="high"
           decoding="async"
         />
       </div>
@@ -38,20 +47,20 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
             splitBy="words" />
           <span class="scanner-line" aria-hidden="true"></span>
         </h1>
-        <p class="hero-title">Software Engineer</p>
+        <p class="hero-title">{t('hero.title')}</p>
 
         <!-- Action Buttons -->
         <div class="hero-actions">
-          <a href="/#contact" class="btn btn-primary hero-cta-contact">
-            Contact me
+          <a href={`${localizePath('/', lang)}#contact`} class="btn btn-primary hero-cta-contact">
+            {t('hero.contact')}
           </a>
           <a
-            href={CV_DOWNLOAD_URL_EN}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={cvUrl}
+            download={cvFile}
             class="btn btn-ghost"
+            data-cv-download
           >
-            Download CV
+            {t('hero.download')}
           </a>
         </div>
       </div>
@@ -72,16 +81,16 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
           <span class="prompt-cmd"> cat rovox.md</span>
         </p>
         <p class="terminal-line">
-          <span class="line-hash">#</span> Software Engineer & Data Scientist
+          <span class="line-hash">#</span> {t('hero.t1')}
         </p>
         <p class="terminal-line">
-          <span class="line-hash">#</span> Full Stack Web/Mobile/Desktop
+          <span class="line-hash">#</span> {t('hero.t2')}
         </p>
         <p class="terminal-line">
-          <span class="line-hash">#</span> Bolivia 🇧🇴 | Open Source Advocate
+          <span class="line-hash">#</span> {t('hero.t3')}
         </p>
         <p class="terminal-line terminal-line-last">
-          <span class="line-hash">#</span> Building tools that empower developers
+          <span class="line-hash">#</span> {t('hero.t4')}
         </p>
         <p class="terminal-prompt terminal-prompt-bottom">
           <span class="prompt-arrow">&gt;</span>
@@ -118,8 +127,9 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
       tweens.push(
         gsap.fromTo(
           '.hero-photo',
-          { opacity: 0, scale: 0.85 },
-          { opacity: 1, scale: 1, duration: 0.9, delay: 0.35 },
+          // Keep opacity at 1 so the LCP image paints immediately; animate scale only.
+          { opacity: 1, scale: 0.92 },
+          { opacity: 1, scale: 1, duration: 0.9, ease: 'power3.out' },
         ),
       );
 
@@ -383,7 +393,11 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
     position: relative;
   }
 
-  .hero-photo img {
+  .hero-photo :global(picture) {
+    display: block;
+  }
+
+  .hero-photo :global(img) {
     width: 100%;
     height: auto;
   }
@@ -604,18 +618,4 @@ import { CV_DOWNLOAD_URL_EN } from '../config';
   }
 
   /* ── Light mode contrast overrides ── */
-  [data-theme="light"] .hero-label {
-    color: var(--primary);
-  }
-
-  [data-theme="light"] .prompt-arrow,
-  [data-theme="light"] .line-hash,
-  [data-theme="light"] .cursor-blink {
-    color: var(--primary-container);
-  }
-
-  [data-theme="light"] .scanner-line {
-    background: var(--primary-container);
-  }
-
 </style>

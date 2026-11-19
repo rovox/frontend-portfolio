@@ -1,11 +1,14 @@
 ---
+import { useTranslations } from '../i18n/ui';
 import { render, type CollectionEntry } from 'astro:content';
+import Carousel from './ui/Carousel.astro';
 
 interface Props {
   items: CollectionEntry<'leadership'>[];
 }
 
 const { items } = Astro.props;
+const t = useTranslations(Astro.currentLocale);
 const rendered = await Promise.all(
   items.map(async (item) => {
     const { Content } = await render(item);
@@ -16,35 +19,12 @@ const rendered = await Promise.all(
 
 <section class="section" id="leadership">
   <div class="container">
-    <h2 class="section-title">&lt;Leadership /&gt;</h2>
-    <p class="section-note">// Community engagement and institutional service</p>
+    <h2 class="section-title">{t('leadership.title')}</h2>
+    <p class="section-note">{t('leadership.note')}</p>
 
-    <div class="leadership-grid">
+    <Carousel id="leadership" cardSelector=".leadership-item">
       {rendered.map((item) => (
         <article class="leadership-item glass-card card-glow">
-          {/* TODO: add images of these events — uncomment when leadership entries have `image` field populated.
-              Expected markup:
-              {item.data.image && (
-                <figure class="leadership-figure">
-                  <img
-                    src={item.data.image}
-                    alt={`${item.data.role} at ${item.data.organization}`}
-                    class="leadership-img"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </figure>
-              )}
-              Suggested CSS:
-              .leadership-figure { margin: 0 0 1rem; }
-              .leadership-img {
-                width: 100%;
-                aspect-ratio: 16 / 9;
-                object-fit: cover;
-                border-radius: var(--radius-md);
-                border: 1px solid var(--border);
-              }
-          */}
           <h3 class="role">{item.data.role}</h3>
           <div class="meta">
             <span class="org">{item.data.organization}</span>
@@ -55,7 +35,7 @@ const rendered = await Promise.all(
           </div>
         </article>
       ))}
-    </div>
+    </Carousel>
   </div>
 </section>
 
@@ -69,18 +49,17 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
 
     function init() {
       if (prefersReducedMotion()) {
-        gsap.set('.leadership-item', { opacity: 1, y: 0 });
+        gsap.set('#leadership .carousel-root', { opacity: 1, y: 0 });
         return;
       }
 
-      const cardsTween = gsap.fromTo(
-        '.leadership-item',
-        { opacity: 0, y: 40 },
+      const tween = gsap.fromTo(
+        '#leadership .carousel-root',
+        { opacity: 0, y: 30 },
         {
           opacity: 1,
           y: 0,
           duration: 0.7,
-          stagger: 0.12,
           ease: 'power3.out',
           scrollTrigger: {
             trigger: '#leadership',
@@ -89,7 +68,7 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
           },
         },
       );
-      if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+      if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
     }
 
     if ((window as any).__portfolioLoaderDone) {
@@ -110,12 +89,6 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
 </script>
 
 <style>
-  .leadership-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
   .leadership-item {
     padding: 1.25rem;
     opacity: 1;
@@ -170,11 +143,5 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-
-  @media (min-width: 720px) {
-    .leadership-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
   }
 </style>

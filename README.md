@@ -136,6 +136,39 @@ Lenis se destruye en `astro:before-swap` para evitar leaks.
 | Right-side cutoff | `100vw` → `100%`, removido GSAP scale/rotation |
 | DynamicBackground GSAP leak | Eliminada animación ScrollTrigger innecesaria |
 
+## SEO, AEO y rendimiento
+
+| Archivo / módulo | Propósito |
+|---|---|
+| `src/components/SEO.astro` | Title, description, canonical, Open Graph, Twitter Card y JSON-LD (`WebSite`, `Person`, `ProfilePage`, `CreativeWork`) |
+| `src/data/summary.ts` | Fuente única de datos de identidad (SEO, llms.txt, bloque "At a glance") |
+| `public/robots.txt` | Permite buscadores y crawlers de IA (GPTBot, ClaudeBot, PerplexityBot, Google-Extended…) |
+| `/llms.txt`, `/llms-full.txt` | Resumen y contenido completo para LLMs, generados en build desde las content collections |
+| `/sitemap.xml` | Sitemap generado en build |
+| `public/og.jpg` | Imagen social 1200×630 |
+| `public/_headers` | Caché inmutable para `/_astro/*` y cabeceras de seguridad |
+| `src/scripts/interactions.ts` | Capa de interacción GSAP (magnetic, tilt, cursor, scramble, contadores, marquee, toast del CV) con `gsap.matchMedia()` y respeto a `prefers-reduced-motion` |
+
+- Imágenes optimizadas en build (`imageService: 'compile'`, AVIF/WebP).
+- Fuentes self-hosted (solo subset latin), sin Google Fonts bloqueante.
+- El splash solo se muestra una vez por sesión en escritorio; WebGL se omite en móvil, Save-Data y reduced motion.
+- CV: `public/cv-jose-roberto-vargas-{en,es}.pdf`, descarga directa con atributo `download`.
+
+URL de producción: `PUBLIC_SITE_URL` (por defecto `https://frontend-portfolio.varor-joseroberto.workers.dev`).
+
+## Idiomas (EN / ES)
+
+- Rutas: inglés en `/` y `/about/`; español en `/es/` y `/es/about/` (Astro i18n, `prefixDefaultLocale: false`).
+- Textos de interfaz: `src/i18n/ui.ts` (`useTranslations(Astro.currentLocale)`, `localizePath`, `alternatePath`).
+- Contenido traducido: `src/content/<colección>/es/<slug>.md` (mismo slug que el original). `getLocalizedCollection()` en `src/i18n/content.ts` usa la versión en español y, si falta, cae al inglés.
+- Selector **EN / ES** en la barra de navegación (y en el menú móvil): enlaza a la misma página en el otro idioma.
+- SEO: `hreflang` (en, es, x-default), `og:locale`, sitemap bilingüe y `llms.txt` enlaza la versión en español. El CV descargado cambia según el idioma.
+
+## Deploy (Cloudflare Workers Builds)
+
+- El repo está conectado a **Cloudflare Workers Builds**: cada push a `master` se construye y despliega automáticamente (sin API token en GitHub). Las demás ramas generan builds de preview.
+- `.github/workflows/ci.yml`: `pnpm check` + `pnpm build` + verificación de archivos SEO/AEO en cada PR/push.
+
 ## Comandos
 
 ```bash

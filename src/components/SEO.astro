@@ -1,0 +1,94 @@
+---
+import { getSummary, sameAs } from '../data/summary';
+import { SITE_URL } from '../config';
+import { alternatePath, toLang } from '../i18n/ui';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'profile' | 'article';
+  /** Extra JSON-LD nodes merged into the @graph. */
+  jsonLd?: Record<string, unknown>[];
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  image = '/og.jpg',
+  type = 'website',
+  jsonLd = [],
+  noindex = false,
+} = Astro.props;
+const lang = toLang(Astro.currentLocale);
+const summary = getSummary(lang);
+
+const path = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const canonical = new URL(path, SITE_URL).href;
+const metaDescription = description ?? summary.short;
+const hrefEn = new URL(alternatePath(path, 'en'), SITE_URL).href;
+const hrefEs = new URL(alternatePath(path, 'es'), SITE_URL).href;
+const imageUrl = new URL(image, SITE_URL).href;
+
+const graph = [
+  {
+    '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
+    url: SITE_URL,
+    name: `${summary.name} — Portfolio`,
+    inLanguage: ['en', 'es'],
+    publisher: { '@id': `${SITE_URL}/#person` },
+  },
+  {
+    '@type': 'Person',
+    '@id': `${SITE_URL}/#person`,
+    name: summary.name,
+    alternateName: summary.handle,
+    jobTitle: summary.role,
+    description: summary.short,
+    url: SITE_URL,
+    image: new URL('/og.jpg', SITE_URL).href,
+    email: summary.email,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: summary.city,
+      addressCountry: summary.countryCode,
+    },
+    knowsAbout: summary.knowsAbout,
+    sameAs,
+  },
+  ...jsonLd,
+];
+const ld = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+---
+
+<title>{title}</title>
+<meta name="description" content={metaDescription} />
+<meta name="author" content={summary.name} />
+<meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'} />
+<meta name="theme-color" content="#0b0b12" />
+<link rel="canonical" href={canonical} />
+<link rel="alternate" hreflang="en" href={hrefEn} />
+<link rel="alternate" hreflang="es" href={hrefEs} />
+<link rel="alternate" hreflang="x-default" href={hrefEn} />
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+<link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={`${summary.name} — Portfolio`} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={metaDescription} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content={lang === 'es' ? 'es_BO' : 'en_US'} />
+<meta property="og:locale:alternate" content={lang === 'es' ? 'en_US' : 'es_BO'} />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={metaDescription} />
+<meta name="twitter:image" content={imageUrl} />
+
+<script type="application/ld+json" set:html={ld} />

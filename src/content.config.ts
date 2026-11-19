@@ -19,7 +19,7 @@ const blog = defineCollection({
 });
 
 const skills = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/skills' }),
+  loader: glob({ pattern: '*.md', base: './src/content/skills' }),
   schema: z.object({
     icon: z.string(),
     title: z.string(),
@@ -29,7 +29,7 @@ const skills = defineCollection({
 });
 
 const experiences = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/experiences' }),
+  loader: glob({ pattern: '*.md', base: './src/content/experiences' }),
   schema: z.object({
     role: z.string(),
     company: z.string(),
@@ -43,7 +43,7 @@ const experiences = defineCollection({
 });
 
 const projects = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
+  loader: glob({ pattern: '*.md', base: './src/content/projects' }),
   schema: z.object({
     title: z.string(),
     description: z.string(),
@@ -59,7 +59,7 @@ const projects = defineCollection({
 });
 
 const education = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/education' }),
+  loader: glob({ pattern: '*.md', base: './src/content/education' }),
   schema: z.object({
     institution: z.string(),
     degree: z.string(),
@@ -70,7 +70,7 @@ const education = defineCollection({
 });
 
 const leadership = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/leadership' }),
+  loader: glob({ pattern: '*.md', base: './src/content/leadership' }),
   schema: z.object({
     role: z.string(),
     organization: z.string(),
@@ -80,4 +80,26 @@ const leadership = defineCollection({
   }),
 });
 
-export const collections = { blog, skills, experiences, projects, education, leadership };
+// Spanish translations live in src/content/<collection>/es/*.md with the same slugs.
+const es = <C extends { schema?: unknown }>(c: C, base: string) =>
+  defineCollection({ loader: glob({ pattern: '*.md', base }), schema: (c as any).schema });
+
+const skillsEs = es(skills, './src/content/skills/es');
+const experiencesEs = es(experiences, './src/content/experiences/es');
+const projectsEs = es(projects, './src/content/projects/es');
+const educationEs = es(education, './src/content/education/es');
+const leadershipEs = es(leadership, './src/content/leadership/es');
+
+export const collections = {
+  blog,
+  skills,
+  experiences,
+  projects,
+  education,
+  leadership,
+  skillsEs,
+  experiencesEs,
+  projectsEs,
+  educationEs,
+  leadershipEs,
+};

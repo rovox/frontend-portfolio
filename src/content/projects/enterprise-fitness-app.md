@@ -8,7 +8,7 @@ technologies:
   - DDD
   - REST API
 liveUrl: https://forgex.tilinka.com/
-preview: /previews/forgex.png
+preview: /previews/forgex.webp
 category: mobile
 order: 2
 tags: [mobile]

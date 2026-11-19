@@ -1,0 +1,12 @@
+packages:
+  - '.'
+
+allowBuilds:
+  esbuild: true
+  sharp: false
+  workerd: true
+
+# pnpm 9/10 equivalent (used by some CI images, e.g. Cloudflare Workers Builds)
+onlyBuiltDependencies:
+  - esbuild
+  - workerd

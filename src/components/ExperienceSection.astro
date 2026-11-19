@@ -1,12 +1,15 @@
 ---
+import { useTranslations } from '../i18n/ui';
 import { render, type CollectionEntry } from 'astro:content';
 import SectionWrapper from './ui/SectionWrapper.astro';
+import Carousel from './ui/Carousel.astro';
 
 interface Props {
   items: CollectionEntry<'experiences'>[];
 }
 
 const { items } = Astro.props;
+const t = useTranslations(Astro.currentLocale);
 const rendered = await Promise.all(
   items.map(async (item) => {
     const { Content } = await render(item);
@@ -15,14 +18,14 @@ const rendered = await Promise.all(
 );
 ---
 
-<SectionWrapper id="experience" title="&lt;Experience /&gt;" note="// Professional journey and academic foundations">
+<SectionWrapper id="experience" title={t('experience.title')} note={t('experience.note')}>
   <div class="filter-chips" data-filter-section="experiences">
-    <button class="filter-chip is-active" data-filter="all">All</button>
-    <button class="filter-chip" data-filter="professional">Professional</button>
-    <button class="filter-chip" data-filter="university">University</button>
+    <button class="filter-chip is-active" data-filter="all">{t('filter.all')}</button>
+    <button class="filter-chip" data-filter="professional">{t('filter.professional')}</button>
+    <button class="filter-chip" data-filter="university">{t('filter.university')}</button>
   </div>
 
-  <div class="exp-grid" id="exp-grid">
+  <Carousel id="experience" cardSelector=".exp-card">
     {rendered.map((exp) => (
       <article class="filter-item glass-card card-glow exp-card" data-type={exp.data.type} data-tags={`${exp.data.type} ${exp.data.tags.join(' ')}`}>
         <div class="exp-card-top">
@@ -42,7 +45,7 @@ const rendered = await Promise.all(
         </div>
       </article>
     ))}
-  </div>
+  </Carousel>
 </SectionWrapper>
 
 <script>
@@ -55,18 +58,18 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
 
     function init() {
       if (prefersReducedMotion()) {
-        gsap.set('.exp-card', { opacity: 1, y: 0 });
+        gsap.set('#experience .carousel-root', { opacity: 1, y: 0 });
         return;
       }
 
-      const cardsTween = gsap.fromTo(
-        '.exp-card',
-        { opacity: 0, y: 40 },
+      // Fade the whole carousel section as one unit.
+      const tween = gsap.fromTo(
+        '#experience .carousel-root',
+        { opacity: 0, y: 30 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.7,
-          stagger: 0.08,
+          duration: 0.8,
           ease: 'power3.out',
           scrollTrigger: {
             trigger: '#experience',
@@ -75,7 +78,7 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
           },
         }
       );
-      if (cardsTween.scrollTrigger) triggers.push(cardsTween.scrollTrigger);
+      if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
     }
 
     if ((window as any).__portfolioLoaderDone) {
@@ -96,14 +99,7 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
 </script>
 
 <style>
-  /* Grid: mobile 1-col, tablet+ 2-col */
-  .exp-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
-
-  /* Card */
+  /* Card internals (layout is handled by Carousel) */
   .exp-card {
     padding: 1.5rem;
     opacity: 1;
@@ -183,17 +179,5 @@ import { prefersReducedMotion } from '../utils/reduced-motion';
     color: var(--primary-container);
     font-family: var(--font-mono);
     font-weight: 600;
-  }
-
-  @media (min-width: 720px) {
-    .exp-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 1040px) {
-    .exp-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
   }
 </style>

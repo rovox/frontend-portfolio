@@ -8,7 +8,7 @@ technologies:
   - Animation
   - WCAG 2.1
 liveUrl: https://dev.tilinka.com
-preview: /previews/tilinkapage.png
+preview: /previews/tilinkapage.webp
 category: web
 order: 4
 tags: [web]

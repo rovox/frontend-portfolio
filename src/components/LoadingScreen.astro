@@ -318,13 +318,18 @@
       logLifecycle(MOD, 'cleanup complete');
     }
 
-    // ── WCAG 2.3.3 exception ──
-    // Splash is a deliberate artistic/branding element, not a functional animation.
-    // Users bypass via Skip button (visible, focusable) or Escape key.
-    // Reduced-motion is respected everywhere else in the site.
-    logLifecycle(MOD, 'splash always shows — WCAG exception');
+    // Splash is a branding element; users can bypass via Skip button or Escape.
 
-    // ── Always run the splash (no sessionStorage guard, no reduced-motion skip) ──
+    // ── Perf/a11y: show the splash once per session, never under reduced motion ──
+    var seen = false;
+    try { seen = sessionStorage.getItem('splash-seen') === '1'; } catch (e) {}
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Mobile/touch & Save-Data: the 7s timeline costs seconds of main-thread time on phones.
+    var small = window.matchMedia && window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+    var saveData = !!(navigator.connection && navigator.connection.saveData);
+    if (seen || reduce || small || saveData) { logLifecycle(MOD, 'splash skipped (seen/reduced)'); finish(State.SKIPPED); return; }
+    try { sessionStorage.setItem('splash-seen', '1'); } catch (e) {}
+
     transition(State.RUNNING);
     mark('splash:RUNNING');
     var container = document.getElementById('splash-container');
